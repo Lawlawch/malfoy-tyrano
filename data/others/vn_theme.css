@@ -1,0 +1,360 @@
+/* =============================================================
+   vn_theme.css  魔法古典主題（羊皮紙 + 金色）
+   全部用 CSS 繪製，不依賴圖片。之後要換成美術素材，改這個檔即可。
+   ============================================================= */
+
+/* 字型：思源宋體（Noto Serif TC）子集，已內嵌在 others/font/，不需連網。
+   子集沒有的字會自動退回系統宋體（見 --vn-serif 的備援順序）。 */
+@font-face {
+  font-family: 'VN Serif';
+  src: url('./font/NotoSerifTC-Regular.subset.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'VN Serif';
+  src: url('./font/NotoSerifTC-Bold.subset.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+:root {
+  --vn-ink: #3b2a1a;
+  --vn-gold: #c9a24a;
+  --vn-gold-dark: #8a6a1f;
+  --vn-gold-light: #f1d98a;
+  --vn-parch-1: #f9edd0;
+  --vn-parch-2: #ead7a6;
+  --vn-parch-3: #dcc07f;
+  --vn-wine: #7a1f2b;
+  --vn-serif: 'VN Serif', 'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', 'STSong', 'PMingLiU', 'MingLiU', 'Times New Roman', serif;
+}
+
+#tyrano_base,
+#tyrano_base .message_inner,
+#tyrano_base .chara_name_area,
+#tyrano_base .glink_button {
+  font-family: var(--vn-serif) !important;
+}
+
+/* ---------- 選項／選單按鈕（glink，color="vn_btn"） ---------- */
+.glink_button.vn_btn {
+  color: var(--vn-ink) !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  background: linear-gradient(180deg, var(--vn-parch-1) 0%, var(--vn-parch-2) 55%, var(--vn-parch-3) 100%) !important;
+  border: 2px solid var(--vn-gold-dark) !important;
+  border-radius: 10px !important;
+  box-shadow:
+    inset 0 0 0 2px var(--vn-parch-1),
+    inset 0 0 0 3px var(--vn-gold),
+    0 4px 10px rgba(0, 0, 0, 0.45) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+  padding: 0.55em 0.8em !important;
+  line-height: 1.25 !important;
+  transition: filter 0.15s, transform 0.1s;
+}
+.glink_button.vn_btn:hover {
+  filter: brightness(1.07);
+  box-shadow:
+    inset 0 0 0 2px var(--vn-parch-1),
+    inset 0 0 0 3px var(--vn-gold),
+    0 0 14px 2px rgba(241, 217, 138, 0.85),
+    0 4px 10px rgba(0, 0, 0, 0.45) !important;
+}
+.glink_button.vn_btn:active { transform: translateY(2px); }
+.glink_button.vn_btn.glink_button_clicked { filter: brightness(0.9); }
+
+.glink_button.vn_btn.vn_btn_off { opacity: 0.5; filter: grayscale(0.4); cursor: default; }
+
+/* ---------- 對話框 ---------- */
+.message0_fore .message_outer,
+.message0_back .message_outer {
+  background: linear-gradient(180deg, rgba(249, 237, 208, 0.96), rgba(228, 204, 150, 0.96)) !important;
+  border: 3px solid var(--vn-gold-dark) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    inset 0 0 0 3px rgba(249, 237, 208, 0.9),
+    inset 0 0 0 5px var(--vn-gold),
+    0 8px 22px rgba(0, 0, 0, 0.5) !important;
+}
+.message0_fore .message_inner,
+.message0_back .message_inner,
+.message0_fore .message_inner span,
+.message0_back .message_inner span {
+  color: var(--vn-ink) !important;   /* 統一文字色（已讀文字不再變藍） */
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+}
+.chara_name_area { display: none !important; }   /* 內建名字欄不用，改用 #vn_plate */
+
+/* ---------- 角色名牌：疊在對話框左上角 ---------- */
+#vn_plate {
+  position: absolute;
+  display: none;
+  z-index: 500000;
+  transform: translateY(-55%);
+  padding: 0.16em 1.2em 0.22em;
+  font-family: var(--vn-serif);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  pointer-events: none;
+  color: var(--vn-gold-light);
+  background: linear-gradient(180deg, #9b2e3d, #5e1520);
+  border: 2px solid var(--vn-gold);
+  border-radius: 4px 16px 4px 16px;
+  box-shadow: 0 0 0 2px #3d0c14, 0 5px 12px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+#vn_plate.on { display: block; }
+#vn_plate.hid { display: none !important; }   /* 對話框被隱藏時，名牌一起隱藏 */
+
+/* ---------- 選項出現時，畫面變暗 ---------- */
+#vn_dim {
+  position: absolute;
+  left: 0; top: 0;
+  z-index: 99999990;                 /* 低於選項(99999999)、高於立繪與對話框 */
+  background: rgba(10, 6, 3, 0.58);
+  pointer-events: none;
+}
+
+/* ---------- 統一風格的確認視窗 ---------- */
+#vn_confirm {
+  position: absolute;
+  left: 0; top: 0; width: 100%; height: 100%;
+  z-index: 2100000000;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 6, 3, 0.6);
+  font-family: var(--vn-serif);
+}
+#vn_confirm .vn_cf_box {
+  width: 78%; max-width: 640px;
+  box-sizing: border-box;
+  padding: 34px 30px 26px;
+  text-align: center;
+  color: var(--vn-ink);
+  border-radius: 16px;
+  border: 4px double var(--vn-gold-dark);
+  background: linear-gradient(180deg, var(--vn-parch-1), var(--vn-parch-2));
+  box-shadow: inset 0 0 40px rgba(138, 106, 31, 0.35), 0 10px 40px rgba(0, 0, 0, 0.65);
+}
+#vn_confirm .vn_cf_title { font-size: 34px; font-weight: 700; letter-spacing: 0.18em; color: var(--vn-wine); }
+#vn_confirm .vn_cf_sub { margin-top: 16px; font-size: 22px; line-height: 1.6; }
+#vn_confirm .vn_cf_btns { margin-top: 28px; display: flex; gap: 18px; justify-content: center; }
+#vn_confirm .vn_cf_btn {
+  flex: 1 1 0; max-width: 220px;
+  padding: 10px 0; cursor: pointer;
+  font-size: 26px; font-weight: 700; letter-spacing: 0.2em;
+  border-radius: 8px;
+  border: 2px solid var(--vn-gold-dark);
+  color: var(--vn-ink);
+  background: linear-gradient(180deg, var(--vn-parch-1), var(--vn-parch-3));
+}
+#vn_confirm .vn_cf_yes {
+  color: var(--vn-parch-1);
+  border-color: var(--vn-gold-light);
+  background: linear-gradient(180deg, #a03342, var(--vn-wine));
+}
+#vn_confirm .vn_cf_btn:hover { filter: brightness(1.1); }
+
+/* ---------- 遊戲內工具列 ---------- */
+#vn_toolbar {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  display: none;
+  justify-content: center;
+  gap: 8px;
+  z-index: 2000000;
+  pointer-events: none;
+}
+#vn_toolbar.on { display: flex; }
+#vn_toolbar.dim { visibility: hidden; }
+#vn_toolbar button {
+  pointer-events: auto;
+  cursor: pointer;
+  font-family: var(--vn-serif);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--vn-ink);
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--vn-gold-dark);
+  background: linear-gradient(180deg, var(--vn-parch-1), var(--vn-parch-3));
+  box-shadow: inset 0 0 0 2px var(--vn-parch-1), 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+#vn_toolbar button:hover { filter: brightness(1.08); }
+#vn_toolbar button.active {
+  color: var(--vn-parch-1);
+  background: linear-gradient(180deg, #a03342, var(--vn-wine));
+  border-color: var(--vn-gold-light);
+}
+@media (min-aspect-ratio: 1/1) {
+  #vn_toolbar { justify-content: flex-end; padding-right: 16px; box-sizing: border-box; }
+}
+
+/* ---------- 提示（隱藏數值變化等） ---------- */
+#vn_toast {
+  position: absolute;
+  left: 50%;
+  top: 76px;
+  transform: translateX(-50%);
+  max-width: 86%;
+  z-index: 2000001;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  font-family: var(--vn-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--vn-parch-1);
+  padding: 10px 26px;
+  border-radius: 999px;
+  border: 2px solid var(--vn-gold);
+  background: rgba(40, 24, 12, 0.88);
+  box-shadow: 0 0 16px rgba(241, 217, 138, 0.55);
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+#vn_toast.show { opacity: 1; }
+
+/* ---------- 存檔 / 讀檔 / 回看（系統畫面共用） ---------- */
+.vn_sys {
+  position: absolute;
+  left: 0; top: 0; width: 100%; height: 100%;
+  background: radial-gradient(ellipse at center, rgba(40, 24, 12, 0.72), rgba(10, 6, 3, 0.9));
+  font-family: var(--vn-serif);
+  color: var(--vn-ink);
+  text-align: left;
+}
+.vn_sys_panel {
+  position: absolute;
+  left: 4%; right: 4%; top: 4%; bottom: 4%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  border: 4px double var(--vn-gold-dark);
+  background: linear-gradient(180deg, var(--vn-parch-1), var(--vn-parch-2));
+  box-shadow: inset 0 0 40px rgba(138, 106, 31, 0.35), 0 10px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+.vn_sys_head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  border-bottom: 3px double var(--vn-gold-dark);
+  background: linear-gradient(180deg, rgba(201, 162, 74, 0.35), rgba(201, 162, 74, 0.05));
+}
+.vn_sys_title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: var(--vn-wine);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.vn_close_btn {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  width: 68px; height: 56px;
+  cursor: pointer;
+  font-size: 44px; font-weight: 400; line-height: 1;
+  color: var(--vn-parch-1);
+  border-radius: 10px;
+  border: 2px solid var(--vn-gold-light);
+  background: linear-gradient(180deg, #a03342, var(--vn-wine));
+  user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.vn_close_btn:hover { filter: brightness(1.12); }
+.vn_sys .area_save_list,
+.vn_sys .log_body {
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+.vn_sys .save_list {
+  list-style: none;
+  margin: 0;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-aspect-ratio: 1/1) {
+  .vn_sys .save_list { grid-template-columns: 1fr; }
+}
+.vn_sys .save_list_item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  min-height: 98px;
+  cursor: pointer;
+  border: 2px solid var(--vn-gold-dark);
+  border-radius: 12px;
+  background: rgba(255, 248, 225, 0.72);
+}
+.vn_sys .save_list_item:hover {
+  background: rgba(255, 236, 170, 0.95);
+  box-shadow: 0 0 12px rgba(201, 162, 74, 0.9);
+}
+.vn_slot_no {
+  position: absolute;
+  left: 8px; top: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--vn-gold-dark);
+  letter-spacing: 0.1em;
+}
+.vn_sys .save_list_item_thumb {
+  flex: 0 0 168px;
+  height: 94px;
+  display: block;
+  overflow: hidden;
+  margin-top: 12px;
+  border: 1px solid var(--vn-gold-dark);
+  background: #d9c391;
+}
+.vn_sys .save_list_item_thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vn_sys .save_list_item_area { flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; margin-top: 12px; min-width: 0; }
+.vn_sys .save_list_item_date { font-size: 18px; color: var(--vn-gold-dark); font-weight: 700; }
+.vn_sys .save_list_item_text { font-size: 20px; line-height: 1.4; word-break: break-all; }
+.vn_empty { font-size: 20px; color: rgba(59, 42, 26, 0.5); letter-spacing: 0.2em; }
+
+.vn_sys_foot {
+  flex: 0 0 auto;
+  display: none;
+  text-align: center;
+  padding: 8px;
+  border-top: 3px double var(--vn-gold-dark);
+}
+.vn_arrow {
+  display: inline-block;
+  width: 70px; text-align: center; margin: 0 20px;
+  font-size: 26px; cursor: pointer;
+  color: var(--vn-parch-1);
+  padding: 4px 0; border-radius: 8px;
+  background: linear-gradient(180deg, var(--vn-gold), var(--vn-gold-dark));
+}
+
+/* 紀錄 */
+#vn_log { z-index: 2000000000; }
+.vn_sys .log_body { padding: 6px 26px 20px; font-size: 24px; line-height: 1.7; }
+.vn_log_row {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(138, 106, 31, 0.28);   /* 不明顯的分隔線 */
+}
+.vn_log_av { flex: 0 0 72px; width: 72px; height: 72px; }           /* 旁白留空，縮排一致 */
+.vn_log_av img { width: 72px; height: 72px; border-radius: 50%; display: block; }
+.vn_log_main { flex: 1 1 auto; min-width: 0; }
+.vn_log_name { font-size: 22px; font-weight: 700; letter-spacing: 0.14em; color: var(--vn-wine); margin-bottom: 2px; }
+.vn_log_text { color: var(--vn-ink); word-break: break-all; }
