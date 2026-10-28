@@ -18,10 +18,10 @@
   --vn-serif: 'VN Serif', 'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', 'STSong', 'PMingLiU', 'MingLiU', 'Times New Roman', serif;
 }
 
+/* 全部文字一律用 VN Serif（思源宋體）。Tyrano 會替每個字的 <span class="char"> 另外指定 userFace（日文黑體），
+   所以必須連同所有子元素一起強制覆蓋，否則對話文字會用系統字型。 */
 #tyrano_base,
-#tyrano_base .message_inner,
-#tyrano_base .chara_name_area,
-#tyrano_base .glink_button {
+#tyrano_base * {
   font-family: var(--vn-serif) !important;
 }
 
