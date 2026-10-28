@@ -1,7 +1,7 @@
 ;==============================================================
 ; 一年級　第一章　長袍店的金髮少女
 ; 視角：哈利（第一人稱）
-; 隱藏數值：f.bond 羈絆 / f.courage 勇氣 / f.wit 機智 / f.shadow 暗影
+; 隱藏數值：f.bond 羈絆（0～100，起始 50，用 VN.bondAdd(n) 增減）
 ; 選擇旗標：f.c1_open（初次回應）/ f.c1_hagrid（對海格的態度）
 ;==============================================================
 
@@ -97,9 +97,9 @@
 
 ;--- 選擇一：怎麼回應她 ----------------------------------------
 [choice_start]
-[opt i="0" text="「對，今年入學。妳也是嗎？」" target="*c1_a" exp="f.bond+=1; f.c1_open=1"]
-[opt i="1" text="「……妳是誰？」" target="*c1_b" exp="f.wit+=1; f.c1_open=2"]
-[opt i="2" text="「對。妳看起來很習慣被人伺候。」" target="*c1_c" exp="f.courage+=1; f.c1_open=3"]
+[opt i="0" text="「對，今年入學。妳也是嗎？」" target="*c1_a" exp="VN.bondAdd(3); f.c1_open=1"]
+[opt i="1" text="「……妳是誰？」" target="*c1_b" exp="f.c1_open=2"]
+[opt i="2" text="「對。妳看起來很習慣被人伺候。」" target="*c1_c" exp="f.c1_open=3"]
 [choice_end]
 [s]
 
@@ -182,9 +182,9 @@
 
 ;--- 選擇二：怎麼面對這句話 --------------------------------------
 [choice_start]
-[opt i="0" text="「他是我的朋友。把那句話收回去。」" target="*h_a" exp="f.courage+=2; f.c1_hagrid=1"]
-[opt i="1" text="「妳又沒見過他，怎麼知道他是什麼樣的人？」" target="*h_b" exp="f.wit+=1; f.bond+=1; f.c1_hagrid=2"]
-[opt i="2" text="（握緊手心，什麼也沒說）" target="*h_c" exp="f.shadow+=1; f.c1_hagrid=3"]
+[opt i="0" text="「他是我的朋友。把那句話收回去。」" target="*h_a" exp="f.c1_hagrid=1"]
+[opt i="1" text="「妳又沒見過他，怎麼知道他是什麼樣的人？」" target="*h_b" exp="VN.bondAdd(3); f.c1_hagrid=2"]
+[opt i="2" text="（握緊手心，什麼也沒說）" target="*h_c" exp="f.c1_hagrid=3"]
 [choice_end]
 [s]
 
@@ -304,7 +304,7 @@
 ; 章節結束
 ;==============================================================
 [iscript]
-if (f.debug == 1) { console.log("[隱藏數值] 羈絆", f.bond, "勇氣", f.courage, "機智", f.wit, "暗影", f.shadow); }   // 只在主控台，不顯示在畫面上
+if (f.debug == 1) { console.log("[隱藏數值] 羈絆", f.bond); }   // 只在主控台，不顯示在畫面上
 [endscript]
 
 #

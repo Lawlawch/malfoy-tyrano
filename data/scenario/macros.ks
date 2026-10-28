@@ -67,7 +67,7 @@ tf.rs = ($.isArray(f.stage) && mp.name != mp.except) ? VN.stagePos(f.stage, mp.n
 ;--------------------------------------------------------------
 ; 劇情選項：一組選項請照這個格式寫
 ;   [choice_start]
-;   [opt i="0" text="..." target="*a" exp="f.bond+=1"]
+;   [opt i="0" text="..." target="*a" exp="VN.bondAdd(3)"]
 ;   [opt i="1" text="..." target="*b"]
 ;   [choice_end]
 ;   [s]

@@ -1,7 +1,7 @@
 ;==============================================================
 ; 一年級　第二章　九又四分之三月台
 ; 視角：哈利（第一人稱）
-; 隱藏數值：f.bond 羈絆 / f.courage 勇氣 / f.wit 機智 / f.shadow 暗影
+; 隱藏數值：f.bond 羈絆（0～100，起始 50，用 VN.bondAdd(n) 增減）
 ; 選擇旗標：f.c2_molly（怎麼向衛斯理夫人開口）/ f.c2_share（對榮恩分糖果的態度）/ f.c2_hand（面對馬份伸出的手）
 ; 承接第一章：f.c1_hagrid（對海格的態度）影響馬份在車上的一句話
 ; 場景錨點：a_platform / a_train / a_visit / a_station（見 macros.ks 的 anchor 說明）
@@ -81,9 +81,9 @@
 
 ;--- 選擇一：怎麼向她開口 -------------------------------------
 [choice_start]
-[opt i="0" text="鼓起勇氣上前：「請問……你們也是要去霍格華茲嗎？」" target="*m_a" exp="f.courage+=1; f.c2_molly=1"]
-[opt i="1" text="先在旁邊觀察，看他們走向哪裡再跟上去" target="*m_b" exp="f.wit+=1; f.c2_molly=2"]
-[opt i="2" text="站在原地不動，也許有人會發現我" target="*m_c" exp="f.shadow+=1; f.c2_molly=3"]
+[opt i="0" text="鼓起勇氣上前：「請問……你們也是要去霍格華茲嗎？」" target="*m_a" exp="f.c2_molly=1"]
+[opt i="1" text="先在旁邊觀察，看他們走向哪裡再跟上去" target="*m_b" exp="f.c2_molly=2"]
+[opt i="2" text="站在原地不動，也許有人會發現我" target="*m_c" exp="f.c2_molly=3"]
 [choice_end]
 [s]
 
@@ -241,9 +241,9 @@
 
 ;--- 選擇二：對榮恩的態度 --------------------------------------
 [choice_start]
-[opt i="0" text="「一起吃吧，這麼多我一個人也吃不完。」" target="*s_a" exp="f.bond+=1; f.c2_share=1"]
-[opt i="1" text="「我們換吧。你分我一半三明治，我分你一半糖。」" target="*s_b" exp="f.wit+=1; f.c2_share=2"]
-[opt i="2" text="把糖果收在自己這一側，什麼也沒說" target="*s_c" exp="f.shadow+=1; f.c2_share=3"]
+[opt i="0" text="「一起吃吧，這麼多我一個人也吃不完。」" target="*s_a" exp="VN.bondAdd(3); f.c2_share=1"]
+[opt i="1" text="「我們換吧。你分我一半三明治，我分你一半糖。」" target="*s_b" exp="f.c2_share=2"]
+[opt i="2" text="把糖果收在自己這一側，什麼也沒說" target="*s_c" exp="f.c2_share=3"]
 [choice_end]
 [s]
 
@@ -384,9 +384,9 @@
 
 ;--- 選擇三：握不握她的手 -------------------------------------
 [choice_start]
-[opt i="0" text="握住她的手：「……好。」" target="*d_a" exp="f.shadow+=2; f.bond+=2; f.c2_hand=1"]
-[opt i="1" text="「我分得出誰好誰壞，不用妳教。」" target="*d_b" exp="f.courage+=2; f.c2_hand=2"]
-[opt i="2" text="站到榮恩身旁：「妳先向他道歉，我才考慮。」" target="*d_c" exp="f.courage+=1; f.wit+=1; f.bond+=1; f.c2_hand=3"]
+[opt i="0" text="握住她的手：「……好。」" target="*d_a" exp="VN.bondAdd(6); f.c2_hand=1"]
+[opt i="1" text="「我分得出誰好誰壞，不用妳教。」" target="*d_b" exp="f.c2_hand=2"]
+[opt i="2" text="站到榮恩身旁：「妳先向他道歉，我才考慮。」" target="*d_c" exp="VN.bondAdd(3); f.c2_hand=3"]
 [choice_end]
 [s]
 
@@ -560,7 +560,7 @@
 ; 章節結束
 ;==============================================================
 [iscript]
-if (f.debug == 1) { console.log("[隱藏數值] 羈絆", f.bond, "勇氣", f.courage, "機智", f.wit, "暗影", f.shadow); }   // 只在主控台，不顯示在畫面上
+if (f.debug == 1) { console.log("[隱藏數值] 羈絆", f.bond); }   // 只在主控台，不顯示在畫面上
 [endscript]
 
 #

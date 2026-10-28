@@ -582,5 +582,13 @@
     }
   } catch (e) {}
 
+  // 羈絆值（唯一的隱藏數值）：劇本用 VN.bondAdd(n) 增減，自動夾在 0～100
+  VN.bondAdd = function (d) {
+    var f = TG.stat.f, v = parseInt(f.bond, 10);
+    if (isNaN(v)) v = 50;
+    f.bond = Math.max(0, Math.min(100, v + (parseInt(d, 10) || 0)));
+    return f.bond;
+  };
+
   buildToolbar();
 })();

@@ -385,8 +385,9 @@
       var f = TG.stat.f, sf = TG.variable.sf;
       var old = VN.snapshotF();
       for (var k in old) { delete f[k]; }
-      f.bond = 0; f.courage = 0; f.wit = 0; f.shadow = 0;
+      f.bond = 50;
       $.extend(f, JSON.parse(JSON.stringify(vals)));
+      delete f.courage; delete f.wit; delete f.shadow; VN.bondAdd(0);   // 舊存檔的多餘數值丟掉，羈絆夾回 0～100
       f.vn_resume_label = anchorOk ? "*" + of.vn_anchor : "";
       f.on_title = 0; f.page = ""; f.stage = []; f.chapter_title = "";
       VN.resetLog();
@@ -609,8 +610,8 @@
     // 從儲思盆選章節一律當成主線：還原「最近一次抵達這一章」時的隱藏數值，並取代目前的自動存檔
     var old = VN.snapshotF();
     for (var k in old) { delete f[k]; }
-    f.bond = 0; f.courage = 0; f.wit = 0; f.shadow = 0;            // 隱藏數值（永不顯示）
-    if (!opt.fresh && sf.vn_start[id]) { $.extend(f, JSON.parse(JSON.stringify(sf.vn_start[id]))); }
+    f.bond = 50;            // 隱藏數值（永不顯示）
+    if (!opt.fresh && sf.vn_start[id]) { $.extend(f, JSON.parse(JSON.stringify(sf.vn_start[id]))); delete f.courage; delete f.wit; delete f.shadow; VN.bondAdd(0); }
     f.on_title = 0; f.page = ""; f.stage = []; f.chapter_title = "";
     VN.clearAutosave();
     VN._compat = false;
