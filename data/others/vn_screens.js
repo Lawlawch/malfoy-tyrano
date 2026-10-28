@@ -220,7 +220,7 @@
 
   VN.openPanel = function (name) {
     VN.stopSkipAuto(); VN.ensureStopAuto();
-    VN.closePanels();
+    VN.closePanels(); $("#vn_log").remove();
     var fn = PANELS[name];
     if (fn) { fn(); }
   };
@@ -284,6 +284,17 @@
   }
 
 
+  // 引擎是否正停在「等待點擊」或「選項」：只有這時直接拍快照才安全
+  function engineWaiting() {
+    try {
+      var st = TG.stat;
+      if (st.is_strong_stop) { return true; }                       // 選項
+      // 停在 [p] 等待點擊：flag_ref_page 為真，且沒有在逐字顯示、沒有在執行換場等動作
+      // （逐字顯示時 Tyrano 也會開著點擊層，所以不能只看點擊層）
+      return st.flag_ref_page === true && !st.is_adding_text && !st.is_stop;
+    } catch (e) { return false; }
+  }
+
   function openSaveLoad(mode) {            // mode = "save" | "load"
     var S = shell(mode === "save" ? "存檔" : "讀檔");
     var tabNames = ["1", "2", "3"];
@@ -331,6 +342,22 @@
       var f = TG.stat.f;
       var line = (VN.log.length ? VN.log[VN.log.length - 1].text : "");
       captureThumb(function (th) {
+        if (!engineWaiting()) {
+          // 文字還在逐字顯示、或正在換場景：這時直接拍的快照讀回來會卡住。
+          // 改用「這一句開始時」的快照（與「繼續」相同的機制），讀檔時會從這一句重新顯示。
+          var la = VN._lastAuto;
+          if (!la || !la.snap || !la.snap.stat || !la.snap.stat.f || la.snap.stat.f.vn_chapter !== f.vn_chapter) {
+            VN.msg(S.$r, "畫面切換中，請稍候再存檔"); return;
+          }
+          var snap2 = JSON.parse(JSON.stringify(la.snap));
+          var meta2 = $.extend(VN.makeMeta(snap2.vn_line || line), { kind: "m", auto_next: "yes" });
+          if (th) { meta2.thumb = th.url; meta2.tw = th.w; meta2.th = th.h; }
+          saveSlot(id, snap2, meta2, function (ok) {
+            VN.msg(S.$r, ok ? "已存入 " + label : "存檔失敗（瀏覽器容量不足？）");
+            render();
+          });
+          return;
+        }
         TG.menu.snapSave("<span>" + (f.chapter_title || "") + "</span>", function () {
           var snap = TG.menu.snap;
           var meta = $.extend(VN.makeMeta(line), { kind: "m", auto_next: "no" });
@@ -365,7 +392,11 @@
       VN._restoreLine = snap.vn_line || null;
       VN.closePanels(); VN.home.hide(); $("#vn_end").remove(); $("#vn_log").remove();
       try { TG.cancelStrongStop(); } catch (e) {}
+      VN.resetLog();                                   // 紀錄從讀檔的位置重新開始，不留讀檔前另一條進度的句子
       TG.menu.loadGameData($.extend(true, {}, snap), { auto_next: autoNext });
+      if (autoNext !== "yes") {                        // 停在這一句（或選項）：把畫面上這句補進紀錄
+        try { VN.pushLog(VN.speaker(), TG.stat.current_message_str || ""); } catch (e) {}
+      }
       return;
     }
     VN.confirm({ title: "劇本已更新", sub: "將從該段落開頭繼續。", ok: "繼續", cancel: "取消" },
@@ -487,7 +518,7 @@
       $p.append($('<span class="vn_pg_no"></span>').text((page + 1) + " / " + pages));
       $p.append($('<span class="vn_pg_btn">›</span>').toggleClass("off", page >= pages - 1).vntap(function () { if (page < pages - 1) { page++; render(); } }));
       S.$body.append($p);
-      if (TG.stat.f.debug == 1) {
+      if (VN.debug) {
         var $d = $('<div class="vn_debug">測試用：<span data-d="1">全部解鎖</span>　<span data-d="0">全部重置</span></div>');
         $d.find("span").vntap(function () { VN.debugUnlockAll($(this).data("d") === 1); render(); });
         S.$body.append($d);
@@ -614,6 +645,7 @@
     if (!opt.fresh && sf.vn_start[id]) { $.extend(f, JSON.parse(JSON.stringify(sf.vn_start[id]))); delete f.courage; delete f.wit; delete f.shadow; VN.bondAdd(0); }
     f.on_title = 0; f.page = ""; f.stage = []; f.chapter_title = "";
     VN.clearAutosave();
+    delete sf.vn_cont;
     VN._compat = false;
     f.vn_resume_label = "";
     VN.resetLog();
@@ -622,10 +654,19 @@
   };
   VN.newGame = function () { VN.startChapter("ch1_01", { fresh: true }); };
   VN.hasAutosave = function () {
-    try { var sf = TG.variable.sf; return !!(sf.system && sf.system.autosave === true && sf.vn_auto_fmt === VN.SAVE_FORMAT); }
+    try {
+      var sf = TG.variable.sf;
+      if (sf.vn_cont) { var nc = VN.chapterById(sf.vn_cont); if (nc && nc.ready) { return true; } }
+      return !!(sf.system && sf.system.autosave === true && sf.vn_auto_fmt === VN.SAVE_FORMAT);
+    }
     catch (e) { return false; }
   };
   VN.doContinue = function () {
+    var sf = TG.variable.sf;
+    if (sf.vn_cont) {                                 // 上一章已讀完：「繼續」直接從下一章開頭開始
+      var nc = VN.chapterById(sf.vn_cont);
+      if (nc && nc.ready) { VN.startChapter(nc.id); return; }
+    }
     var data = null;
     try { data = JSON.parse($.getStorage(TG.config.projectID + "_tyrano_auto_save", TG.config.configSave)); } catch (e) {}
     if (!data) { return; }
@@ -674,7 +715,9 @@
     var idx = VN.chapters.indexOf(VN.chapterById(id)), next = VN.chapters[idx + 1];
     // 不論下一章做好了沒有，都記下「通關時的數值」與解鎖；之後章節上線，儲思盆就能直接進入
     if (next) { sf.vn_ch[next.id] = 1; sf.vn_start[next.id] = VN.snapshotF(); sf.vn_head = next.n; }
-    VN.saveSf();                                      // 自動存檔保留：「繼續」回到最後一個選項
+    // 「繼續」：下一章已做好 → 從下一章開頭開始；還沒做好 → 保留原本的自動存檔（回到最後一個選項）
+    if (next && next.ready) { sf.vn_cont = next.id; } else { delete sf.vn_cont; }
+    VN.saveSf();
     VN.showEnd(idx);
     return "main";
   };

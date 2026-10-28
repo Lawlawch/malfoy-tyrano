@@ -13,6 +13,7 @@ if (f.on_title == 1) {
   VN.toolbar(true);
   VN.track = true;
   VN.applyFont();
+  VN.restoreLine();        // 從「句子開頭」的快照讀回（自動存檔、打字中存的檔）：把這一句補回對話框
 }
 VN.applyCfg(false);
 [endscript]

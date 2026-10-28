@@ -9,6 +9,8 @@
   var VN = (window.VN = window.VN || {});
 
   VN._autosaveBusy = false;
+  // 測試模式：網址加上 ?debug=1 才開啟（圖鑑的全部解鎖／重置按鈕、主控台印出羈絆值）
+  VN.debug = /[?&]debug=1(&|$)/.test(location.search || "");
 
   /* ---------- 章節清單 ---------- */
   VN.chapters = [
@@ -77,6 +79,7 @@
       var sf0 = TG.variable.sf;
       sf0.system.autosave = true;
       sf0.vn_auto_ver = VN.SAVE_VERSION; sf0.vn_auto_fmt = VN.SAVE_FORMAT;
+      delete sf0.vn_cont;                          // 有了新的自動存檔，「繼續」就以它為準
       VN.saveSf();
     } catch (err) { console.warn("vn autosave failed", err); }
   };
@@ -175,9 +178,18 @@
     try {
       var $in = $(".message0_fore .message_inner");
       if (!$in.length || $.trim($in.text())) return;
-      var L = window.vnLayout();
-      $in.append($('<span class="current_span"></span>').html(line).css({ fontSize: L.font + "px" }));
-      VN.updatePlate(VN.speaker());
+      var L = window.vnLayout(), info = VN.speaker();
+      var fs = VN.fitFont(line, !info) || L.font;
+      // 優先填進存檔裡留下的空白 current_span（等待點擊的羽毛筆會接在它後面）；沒有才另外加一個
+      var $cur = $in.find(".current_span").last();
+      if ($cur.length && !$.trim($cur.text())) { $cur.html(line).css({ fontSize: fs + "px" }); }
+      else {
+        var $sp = $('<span class="current_span"></span>').html(line).css({ fontSize: fs + "px" });
+        var $g = $in.find(".img_next").first();
+        if ($g.length) { $g.before($sp); } else { $in.append($sp); }
+      }
+      VN.updatePlate(info);
+      VN.pushLog(info, line);
     } catch (e) { console.warn("restoreLine", e); }
   };
   VN.clearMsg = function () {            // 選了選項之後清掉對話框（選項出現時對話框保留最後一句）
@@ -314,7 +326,7 @@
 
   VN.openLog = function () {
     stopSkipAuto(); ensureStopAuto();
-    $("#vn_log").remove();
+    $("#vn_log").remove(); $(".vn_scr").remove(); $("#vn_cgview").remove();   // 紀錄與其他面板不同時開著
     var $o = $(
       '<div id="vn_log" class="vn_sys"><div class="vn_sys_panel">' +
       '<div class="vn_sys_head"><span class="vn_sys_title">紀錄</span><span class="vn_close_btn">×</span></div>' +
@@ -581,6 +593,19 @@
       document.fonts.addEventListener("loadingdone", function () { if (typeof window.vnLayout !== "function") return; VN.layoutChoices(0); VN.placePlate(); });
     }
   } catch (e) {}
+
+  // 瀏覽器儲存空間寫入失敗（容量滿、被停用）時提示一次；取代 Tyrano 原本只在主控台印日文錯誤的做法
+  VN.storageFail = function () {
+    if (VN._storeWarned) return;
+    VN._storeWarned = true;
+    setTimeout(function () {
+      VN.confirm({ title: "無法儲存進度", sub: "瀏覽器的儲存空間已滿或被停用（例如部分無痕模式），自動存檔與已讀記錄暫時無法保存。", ok: "知道了", single: true });
+    }, 0);
+  };
+  $.setStorageWeb = function (key, val) {
+    try { localStorage.setItem(key, escape(JSON.stringify(val))); }
+    catch (e) { console.warn("storage write failed", key, e); VN.storageFail(); }
+  };
 
   // 羈絆值（唯一的隱藏數值）：劇本用 VN.bondAdd(n) 增減，自動夾在 0～100
   VN.bondAdd = function (d) {

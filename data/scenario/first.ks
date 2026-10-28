@@ -101,7 +101,7 @@ window.vnLayout = function () {
 f.stage = [];      // 目前在場的角色（依登場順序，自動排位）
 f.on_title = 1;
 f.page = "";
-f.debug = 1;       // 1 = 章節結尾顯示隱藏數值（正式版請改成 0）
+delete f.debug;    // 測試模式改由網址 ?debug=1 開啟（見 vn_ui.js 的 VN.debug）
 f.bond = 50;       // 唯一的隱藏數值：與馬份的羈絆（0～100，起始 50；愈高愈把她拉向光明，愈低愈孤立或被她拉向黑暗）
 f.chapter_title = "";
 [endscript]
