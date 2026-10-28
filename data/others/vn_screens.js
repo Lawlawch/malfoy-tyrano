@@ -119,7 +119,7 @@
 
   function saveSlot(id, snap, meta, cb) {
     var copy;
-    snap.vn_ver = VN.SAVE_VERSION; meta.ver = VN.SAVE_VERSION;
+    snap.vn_ver = VN.SAVE_VERSION; meta.ver = VN.SAVE_VERSION; snap.vn_fmt = VN.SAVE_FORMAT; meta.fmt = VN.SAVE_FORMAT;
     try { copy = JSON.parse(JSON.stringify(snap)); } catch (e) { if (cb) { cb(false); } return; }
     DB.put("snap", id, copy, function (ok) {
       if (!ok) { if (cb) { cb(false); } return; }
@@ -218,7 +218,9 @@
      ============================================================= */
   function slotHtml(label, meta) {
     if (!meta) { return '<div class="no">' + esc(label) + '</div><div class="vn_slot_empty">— 空 —</div>'; }
-    var old = (meta.ver !== VN.SAVE_VERSION) ? '<div class="old">舊版劇本的存檔，無法讀取</div>' : "";
+    var old = "";
+    if (meta.fmt !== VN.SAVE_FORMAT) { old = '<div class="old">舊格式的存檔，無法讀取</div>'; }
+    else if (meta.ver !== VN.SAVE_VERSION) { old = '<div class="old">劇本已更新，將從段落開頭讀取</div>'; }
     return '<div class="no">' + esc(label) + '</div>' + old +
       '<div class="tm">' + esc(meta.time) + "</div>" +
       '<div class="ch">' + esc(meta.chapter) + "</div>" +
@@ -276,17 +278,58 @@
   VN.loadSlot = function (id) {
     DB.get("snap", id, function (snap) {
       if (!snap) { return; }
-      if (snap.vn_ver !== VN.SAVE_VERSION) {
-        VN.confirm({ title: "無法讀取這個存檔", sub: "這是舊版劇本留下的存檔，內容和目前的劇本對不上，讀取會停在錯誤的位置。", ok: "知道了", single: true });
-        return;
-      }
       DB.get("meta", id, function (meta) {
-        var an = (meta && meta.auto_next) || "no";
-        VN.closePanels(); VN.home.hide(); $("#vn_end").remove(); $("#vn_log").remove();
-        try { TG.cancelStrongStop(); } catch (e) {}
-        TG.menu.loadGameData($.extend(true, {}, snap), { auto_next: an });
+        VN.loadSnap(snap, (meta && meta.auto_next) || "no");
       });
     });
+  };
+
+  // 讀取一份存檔快照：格式不同 → 無法讀取；劇本版本不同 → 錨點相容讀檔；完全相同 → 原樣讀取
+  VN.loadSnap = function (snap, autoNext) {
+    if (snap.vn_fmt !== VN.SAVE_FORMAT) {
+      VN.confirm({ title: "無法讀取這個存檔", sub: "這是舊格式的存檔，無法在目前的版本讀取。", ok: "知道了", single: true });
+      return;
+    }
+    if (snap.vn_ver === VN.SAVE_VERSION) {
+      VN.closePanels(); VN.home.hide(); $("#vn_end").remove(); $("#vn_log").remove();
+      try { TG.cancelStrongStop(); } catch (e) {}
+      TG.menu.loadGameData($.extend(true, {}, snap), { auto_next: autoNext });
+      return;
+    }
+    VN.confirm({ title: "劇本已更新", sub: "將從該段落開頭繼續。", ok: "繼續", cancel: "取消" },
+      function () { VN.compatLoad(snap); });
+  };
+
+  // 相容讀檔：還原錨點（或章節開頭）當時的隱藏數值，從那裡重播
+  VN.compatLoad = function (snap) {
+    var of = (snap.stat && snap.stat.f) || {};
+    var c = VN.chapterById(of.vn_chapter);
+    function fail() { VN.confirm({ title: "無法讀取這個存檔", sub: "找不到這個存檔所屬的章節。", ok: "知道了", single: true }); }
+    if (!c || !c.ready) { fail(); return; }
+    function go(anchorOk) {
+      var vals = anchorOk ? of.vn_anchor_f : of.vn_chstart;
+      if (!vals) { vals = of.vn_chstart; anchorOk = false; }
+      if (!vals) { fail(); return; }
+      var f = TG.stat.f, sf = TG.variable.sf;
+      var old = VN.snapshotF();
+      for (var k in old) { delete f[k]; }
+      f.bond = 0; f.courage = 0; f.wit = 0; f.shadow = 0;
+      $.extend(f, JSON.parse(JSON.stringify(vals)));
+      f.vn_resume_label = anchorOk ? "*" + of.vn_anchor : "";
+      f.on_title = 0; f.page = ""; f.stage = []; f.chapter_title = "";
+      VN.resetLog();
+      VN._compat = true;                       // chapterBegin 讀到這個旗標：用存檔裡的章節起點數值，不覆寫儲思盆快照
+      VN._compatChstart = of.vn_chstart || null;
+      VN.jumpTo(c.file);
+    }
+    var anchor = of.vn_anchor;
+    if (!anchor) { go(false); return; }
+    $.ajax({ url: "./data/scenario/" + c.file + "?t=" + Date.now(), dataType: "text", cache: false })
+      .done(function (txt) {
+        var re = new RegExp("^\\*" + anchor.replace(/[^\w]/g, "") + "\\s*$", "m");
+        go(re.test(txt));
+      })
+      .fail(function () { go(false); });
   };
 
   /* =============================================================
@@ -319,9 +362,11 @@
           $row.append($('<span class="nm"></span>').text(c.title));
           if (sf.vn_done && sf.vn_done[id]) { $row.append('<span class="done">已讀</span>'); }
           $row.vntap(function () {
-            if (VN.hasAutosave()) {
-              VN.confirm({ title: "從這一章開始？", sub: "目前的自動存檔會被取代。手動存檔不受影響。", ok: "開始", cancel: "取消" },
-                function () { VN.startChapter(id); });
+            var note = (sf.vn_head !== undefined && c.n > sf.vn_head && !!sf.vn_start[id]);   // 要用舊時間線留下的快照
+            var auto = VN.hasAutosave();
+            if (note || auto) {
+              var sub = (note ? "此章將沿用先前的進度。" : "") + (note && auto ? "\n" : "") + (auto ? "目前的自動存檔會被取代。手動存檔不受影響。" : "");
+              VN.confirm({ title: "從這一章開始？", sub: sub, ok: "開始", cancel: "取消" }, function () { VN.startChapter(id); });
             } else { VN.startChapter(id); }
           });
         } else {
@@ -472,7 +517,7 @@
      開始章節／章節流程
      ============================================================= */
   VN.snapshotF = function () {
-    var f = TG.stat.f, o = {}, skip = ["on_title", "page", "chapter_title", "debug"];
+    var f = TG.stat.f, o = {}, skip = ["on_title", "page", "chapter_title", "debug", "vn_chapter", "vn_anchor", "vn_resume_label"];
     for (var k in f) {
       if (skip.indexOf(k) >= 0) { continue; }
       var t = typeof f[k];
@@ -495,18 +540,21 @@
     if (!opt.fresh && sf.vn_start[id]) { $.extend(f, JSON.parse(JSON.stringify(sf.vn_start[id]))); }
     f.on_title = 0; f.page = ""; f.stage = []; f.chapter_title = "";
     VN.clearAutosave();
+    VN._compat = false;
+    f.vn_resume_label = "";
     VN.resetLog();
     VN.jumpTo(c.file);
   };
   VN.newGame = function () { VN.startChapter("ch1_01", { fresh: true }); };
   VN.hasAutosave = function () {
-    try { var sf = TG.variable.sf; return !!(sf.system && sf.system.autosave === true && sf.vn_auto_ver === VN.SAVE_VERSION); }
+    try { var sf = TG.variable.sf; return !!(sf.system && sf.system.autosave === true && sf.vn_auto_fmt === VN.SAVE_FORMAT); }
     catch (e) { return false; }
   };
   VN.doContinue = function () {
-    VN.home.hide();
-    try { TG.cancelStrongStop(); } catch (e) {}
-    TG.menu.loadAutoSave();
+    var data = null;
+    try { data = JSON.parse($.getStorage(TG.config.projectID + "_tyrano_auto_save", TG.config.configSave)); } catch (e) {}
+    if (!data) { return; }
+    VN.loadSnap(data, "yes");
   };
 
   // 章節腳本開頭呼叫（[chapter_begin id=... title=...]）
@@ -514,13 +562,30 @@
     var f = TG.stat.f, sf = TG.variable.sf;
     f.on_title = 0;
     f.chapter_title = title;
+    f.vn_chapter = id;
     VN.toolbar(true);
     VN.track = true;
     VN._autoNow = true;                               // 章節第一句寫入自動存檔
     sf.vn_ch = sf.vn_ch || {}; sf.vn_start = sf.vn_start || {};
-    sf.vn_ch[id] = 1;
-    sf.vn_start[id] = VN.snapshotF();                 // 記下抵達這一章時的狀態（儲思盆選章節用，每次抵達都更新）
-    VN.saveSf();
+    if (VN._compat) {
+      // 相容讀檔：沿用存檔裡記的章節起點數值，不覆寫儲思盆的快照
+      f.vn_chstart = VN._compatChstart || VN.snapshotF();
+      VN._compat = false; VN._compatChstart = null;
+    } else {
+      f.vn_chstart = VN.snapshotF();                  // 存檔自帶一份：劇本更新後找不到錨點時，退回章節開頭用
+      sf.vn_ch[id] = 1;
+      sf.vn_start[id] = VN.snapshotF();               // 記下抵達這一章時的狀態（儲思盆選章節用，每次抵達都更新）
+      sf.vn_head = VN.chapterById(id).n;              // 目前這條時間線走到第幾章
+      VN.saveSf();
+    }
+  };
+
+  // 場景錨點（劇本裡 *a_xxx 標籤之後呼叫 [anchor id="a_xxx"]）：記下目前位置與當時的隱藏數值
+  VN.anchor = function (id) {
+    var f = TG.stat.f;
+    f.vn_anchor = id;
+    f.vn_anchor_f = VN.snapshotF();
+    f.vn_resume_label = "";
   };
 
   // 章節腳本結尾呼叫（[end_chapter id=...]）。回傳 "main"（顯示章末頁並停住）
@@ -530,7 +595,8 @@
     sf.vn_done = sf.vn_done || {}; sf.vn_ch = sf.vn_ch || {}; sf.vn_start = sf.vn_start || {};
     sf.vn_done[id] = 1; sf.vn_ch[id] = 1;
     var idx = VN.chapters.indexOf(VN.chapterById(id)), next = VN.chapters[idx + 1];
-    if (next && next.ready) { sf.vn_ch[next.id] = 1; sf.vn_start[next.id] = VN.snapshotF(); }
+    // 不論下一章做好了沒有，都記下「通關時的數值」與解鎖；之後章節上線，儲思盆就能直接進入
+    if (next) { sf.vn_ch[next.id] = 1; sf.vn_start[next.id] = VN.snapshotF(); sf.vn_head = next.n; }
     VN.clearAutosave();
     VN.saveSf();
     VN.showEnd(idx);

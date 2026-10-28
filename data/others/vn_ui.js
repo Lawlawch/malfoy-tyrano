@@ -45,7 +45,8 @@
 
   // 存檔版本：只要章節劇本的行數有增減（舊存檔會對錯位置），就把這個字串改掉。
   // 版本不符的存檔會被擋下並提示，不會讀到錯誤的位置。
-  VN.SAVE_VERSION = "v7.0";
+  VN.SAVE_VERSION = "v8.0";   // 劇本版本：章節劇本有改動就可以升（舊存檔會走「錨點相容讀檔」，不會失效）
+  VN.SAVE_FORMAT = 2;          // 存檔格式：只有存檔資料結構改了才升（不同格式的存檔無法讀取）
 
   /* ---------- sf（系統變數）工具 ---------- */
   VN.saveSf = function () {
@@ -65,7 +66,7 @@
   VN.clearAutosave = function () {
     try { $.removeStorageWeb(TG.config.projectID + "_tyrano_auto_save"); } catch (e) {}
     try { TG.variable.sf.system.autosave = false; } catch (e) {}
-    try { delete TG.variable.sf.vn_auto_ver; } catch (e) {}
+    try { delete TG.variable.sf.vn_auto_ver; delete TG.variable.sf.vn_auto_fmt; } catch (e) {}
   };
   // 把最近一句對話的快照寫成自動存檔。只在「章節開頭」與「進入選項」時呼叫。
   VN.commitAutosave = function () {
@@ -75,7 +76,7 @@
       TG.menu.doSetAutoSave();
       var sf0 = TG.variable.sf;
       sf0.system.autosave = true;
-      if (sf0.vn_auto_ver !== VN.SAVE_VERSION) { sf0.vn_auto_ver = VN.SAVE_VERSION; }
+      sf0.vn_auto_ver = VN.SAVE_VERSION; sf0.vn_auto_fmt = VN.SAVE_FORMAT;
       VN.saveSf();
     } catch (err) { console.warn("vn autosave failed", err); }
   };
@@ -139,7 +140,7 @@
   };
   VN.makeMeta = function (line) {
     var f = TG.stat.f;
-    return { time: VN.nowStr(), chapter: f.chapter_title || "", line: VN.plain(line).replace(/\s+/g, " ").slice(0, 40) };
+    return { time: VN.nowStr(), fmt: VN.SAVE_FORMAT, chapter: f.chapter_title || "", line: VN.plain(line).replace(/\s+/g, " ").slice(0, 40) };
   };
   // 有任何自製視窗開著時，擋住鍵盤，避免按 Enter／空白鍵讓底下的劇情前進
   VN.overlayOpen = function () { return $(".vn_scr, #vn_log, #vn_confirm, #vn_end").length > 0; };
@@ -366,7 +367,7 @@
       var title = TG.stat.f.chapter_title || "";
       var line = ((e && e.target) || {}).val || "";
       TG.menu.snapSave("<span>" + title + "</span>", function () {
-        TG.menu.snap.vn_ver = VN.SAVE_VERSION;
+        TG.menu.snap.vn_ver = VN.SAVE_VERSION; TG.menu.snap.vn_fmt = VN.SAVE_FORMAT;
         VN._lastAuto = { snap: TG.menu.snap, meta: VN.makeMeta(line) };
         if (VN._autoNow) { VN._autoNow = false; VN.commitAutosave(); }   // 章節第一句
         VN._autosaveBusy = false;

@@ -32,9 +32,17 @@
 ;確保版面與目前螢幕方向一致
 [call storage="resizecall.ks"]
 
+;--- 讀檔閘門：舊版劇本的存檔會帶著 f.vn_resume_label，直接跳到該場景錨點重播 ---
+[if exp="f.vn_resume_label"]
+[hide_all_c time=0]
+[jump target="&f.vn_resume_label"]
+[endif]
+
 ;==============================================================
 ; 場景一　對角巷
 ;==============================================================
+*a_alley
+[anchor id="a_alley"]
 [bg storage="diagon_alley.jpg" time=800]
 [wait time=400]
 
@@ -62,6 +70,8 @@
 ;==============================================================
 ; 場景二　摩金夫人的長袍店
 ;==============================================================
+*a_shop
+[anchor id="a_shop"]
 [bg storage="malkin_shop.jpg" time=800]
 [wait time=300]
 
@@ -269,6 +279,8 @@
 ;==============================================================
 ; 場景三　店外
 ;==============================================================
+*a_outside
+[anchor id="a_outside"]
 [bg storage="diagon_alley.jpg" time=800]
 [wait time=300]
 [show_c name="hagrid" face="happy" slot="center"]
