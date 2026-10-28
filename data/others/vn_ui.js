@@ -401,6 +401,17 @@
   if (VN._hooked) { try { TG.off("tag-text-message.vnui"); TG.off("tag-text-message.vnautosave"); TG.off("click-tag-glink.vnui"); TG.off("messagewindow-hide.vnui"); TG.off("messagewindow-show.vnui"); } catch (e) {} }
   VN._hooked = true;
 
+  /* ---------- 進入章節時先蓋黑幕，第一句話出現才淡出（避免看到半成品畫面）---------- */
+  VN.coverOn = function () {
+    $("#vn_cover").remove();
+    $("#tyrano_base").append('<div id="vn_cover"></div>');
+    clearTimeout(VN._coverT); VN._coverT = setTimeout(VN.coverOff, 8000);
+  };
+  VN.coverOff = function () {
+    var $c = $("#vn_cover"); if (!$c.length) return;
+    clearTimeout(VN._coverT); $c.addClass("out"); setTimeout(function () { $c.remove(); }, 600);
+  };
+
   /* ---------- 文字太長時，自動縮小這一句的字級，確保不超出對話框 ---------- */
   VN.fitFont = function (html, narr) {
     try {
@@ -429,6 +440,7 @@
       var info = VN.speaker();
       VN.updatePlate(info);
       if (f.on_title == 1) return;
+      if ($("#vn_cover").length && !$("#vn_cover").hasClass("out")) { setTimeout(VN.coverOff, 150); }
       var fs = VN.fitFont(pm.val, !info);
       if (fs) { TG.stat.font.size = fs; }
       if (f.vn_chapter && VN.track) {

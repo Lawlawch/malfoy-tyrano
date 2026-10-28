@@ -590,6 +590,7 @@
     VN._compat = false;
     f.vn_resume_label = "";
     VN.resetLog();
+    VN.coverOn();
     VN.jumpTo(c.file);
   };
   VN.newGame = function () { VN.startChapter("ch1_01", { fresh: true }); };
@@ -693,8 +694,8 @@
       var $h = $(
         '<div id="vn_home"><div class="bg"><div class="stars"></div><div class="moon"></div><svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="vnh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1022"/><stop offset="1" stop-color="#05060d"/></linearGradient></defs><path fill="url(#vnh)" d="M0 600V470l60-20 40 30 70-60 50 40 90-30V600zM560 600V420h30v-50h20v-60l15-35 15 35v60h20v50h35v-90h24l16-40 16 40h24v90h30V330l18-70 18 70v90h44v60h60V400h22l14-60 14 60h22v-40h40v240zM1120 600V380l25-30v-60l20-50 20 50v60l25 30v220zM1260 600V450l50-30 50 30v-70l20-40 20 40v70l40-20 40 40 70-30V600z"/><path fill="#05060d" d="M0 600V540l180-30 200 40 220-20 240 30 260-40 300 30 200-20V600z"/><g fill="#f3c26b" opacity=".85"><rect x="612" y="395" width="5" height="9"/><rect x="760" y="330" width="5" height="9"/><rect x="842" y="380" width="5" height="9"/><rect x="1150" y="330" width="5" height="9"/><rect x="1146" y="420" width="5" height="9"/><rect x="1328" y="400" width="5" height="9"/><rect x="940" y="410" width="5" height="9"/></g></svg></div><div class="veil"></div>' +
         '<div class="frame"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>' +
-        '<div class="ttl"><div class="t1">鉑金色的馬份</div><div class="orn"><span></span><i></i><span></span></div><div class="t2">蛇與獅之歌</div></div>' +
-        '<div class="menu"></div></div>'
+        '<div class="col"><div class="ttl"><div class="t1">鉑金色的馬份</div><div class="orn"><span></span><i></i><span></span></div><div class="t2">蛇與獅之歌</div></div>' +
+        '<div class="menu"></div></div></div>'
       );
       items.forEach(function (it) {
         var $a = $('<div class="item"></div>').text(it[1]).attr("data-a", it[0]);

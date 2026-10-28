@@ -47,7 +47,8 @@
 #vn_home .frame i { position: absolute; width: 11px; height: 11px; background: #f1d98a; transform: rotate(45deg); box-shadow: 0 0 8px rgba(241, 217, 138, 0.8); }
 #vn_home .frame i.tl { left: -6px; top: -6px; } #vn_home .frame i.tr { right: -6px; top: -6px; }
 #vn_home .frame i.bl { left: -6px; bottom: -6px; } #vn_home .frame i.br { right: -6px; bottom: -6px; }
-#vn_home .ttl { position: absolute; left: 9%; top: 15%; text-align: left; pointer-events: none; }
+#vn_home .col { position: absolute; left: 9%; top: 50%; transform: translateY(-50%); }
+#vn_home .ttl { display: inline-block; text-align: left; pointer-events: none; }
 #vn_home .t1 {
   display: inline-block;
   font-size: 80px; font-weight: 700; letter-spacing: 0.18em;
@@ -60,18 +61,18 @@
 #vn_home .orn span:last-child { background: linear-gradient(270deg, rgba(241, 217, 138, 0), rgba(241, 217, 138, 0.9)); }
 #vn_home .orn i { width: 10px; height: 10px; background: #f1d98a; transform: rotate(45deg); box-shadow: 0 0 8px rgba(241, 217, 138, 0.8); }
 #vn_home .t2 {
-  font-size: 34px; letter-spacing: 0.5em;
+  font-size: 34px; letter-spacing: 0.5em; text-align: right; margin-right: -0.5em;
   color: rgba(249, 237, 208, 0.92);
   text-shadow: 0 2px 0 rgba(59, 42, 26, 0.9), 0 0 16px rgba(0, 0, 0, 0.8);
 }
 /* 選單：置中，項目之間一條淡金線，滑過時兩側出現小菱形 */
 #vn_home .menu {
-  position: absolute; left: 9%; bottom: 11%;
+  margin-top: 30px;
   display: flex; flex-direction: column; align-items: flex-start;
 }
 #vn_home .item {
   position: relative; min-width: 300px; text-align: left;
-  padding: 10px 0 10px 34px;
+  padding: 8px 0 8px 34px;
   font-size: 27px; font-weight: 400; letter-spacing: 0.5em;
   color: rgba(255, 255, 255, 0.9); cursor: pointer;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 0 2px rgba(0, 0, 0, 0.9);
@@ -127,7 +128,7 @@
 
 /* ---------- 儲思盆 ---------- */
 .vn_year { width: 100%; text-align: center; padding: 4px 0 10px; display: flex; justify-content: center; align-items: center; gap: 30px; }
-.vn_year_name { font-size: 38px; font-weight: 700; letter-spacing: 0.4em; padding-left: 0.4em; color: var(--vn-wine); }
+.vn_year_name { font-size: 38px; font-weight: 700; letter-spacing: 0.1em; padding-left: 0.1em; color: var(--vn-wine); }
 .vn_year_arrow { font-size: 48px; cursor: pointer; color: var(--vn-wine); padding: 0 22px; line-height: 1; user-select: none; touch-action: manipulation; }
 .vn_year_arrow.off { opacity: 0.25; cursor: default; }
 .vn_ch_list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; grid-auto-flow: column; grid-template-rows: repeat(5, auto); }
@@ -177,10 +178,10 @@
 /* ---------- 設定 ---------- */
 .vn_cfg_wrap { display: flex; gap: 22px; align-items: flex-start; }
 .vn_cfg_nav { flex: 0 0 170px; display: flex; flex-direction: column; gap: 10px; }
-.vn_cfg_navitem { cursor: pointer; padding: 12px 10px; text-align: center; font-size: 28px; font-weight: 700; letter-spacing: 0.3em; padding-left: calc(10px + 0.3em); border: 2px solid var(--vn-gold-dark); border-radius: 10px; background: rgba(255, 248, 225, 0.7); color: var(--vn-ink); }
+.vn_cfg_navitem { cursor: pointer; padding: 12px 10px; text-align: center; font-size: 28px; font-weight: 700; letter-spacing: 0.1em; padding-left: calc(10px + 0.1em); border: 2px solid var(--vn-gold-dark); border-radius: 10px; background: rgba(255, 248, 225, 0.7); color: var(--vn-ink); }
 .vn_cfg_navitem.on { background: linear-gradient(180deg, #a03342, var(--vn-wine)); color: var(--vn-parch-1); border-color: var(--vn-gold-light); }
 .vn_cfg_main { flex: 1 1 auto; min-width: 0; }
-.vn_cfg_sec { margin: 6px 0 4px; padding-bottom: 6px; font-size: 28px; font-weight: 700; letter-spacing: 0.4em; color: var(--vn-wine); border-bottom: 2px solid var(--vn-gold-dark); }
+.vn_cfg_sec { margin: 6px 0 4px; padding-bottom: 6px; font-size: 28px; font-weight: 700; letter-spacing: 0.08em; color: var(--vn-wine); border-bottom: 2px solid var(--vn-gold-dark); }
 .vn_cfg_row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px 6px; border-bottom: 1px solid rgba(138, 106, 31, 0.25); }
 .vn_cfg_row .lb { font-size: 26px; font-weight: 700; color: var(--vn-ink); }
 .vn_cfg_row .ctl { display: flex; align-items: center; gap: 12px; }
@@ -234,17 +235,18 @@
 @media (max-aspect-ratio: 1/1) {
   .vn_scr .vn_sys_panel, #vn_log .vn_sys_panel { top: 96px; bottom: 3%; }
   #vn_home .frame { inset: 20px; }
-  #vn_home .ttl { top: 12%; left: 0; right: 0; text-align: center; }
+  #vn_home .col { left: 0; right: 0; text-align: center; }
+  #vn_home .ttl { text-align: center; }
+  #vn_home .t2 { text-align: center; margin-right: 0; }
   #vn_home .orn { justify-content: center; }
   #vn_home .bg .moon { width: 14vmin; height: 14vmin; right: 12%; top: 7%; }
-  #vn_home .menu { left: 0; right: 0; align-items: center; }
+  #vn_home .menu { align-items: center; }
   #vn_home .item { text-align: center; padding-left: 0.5em; }
   #vn_home .item + .item { background-position: top center; background-size: 150px 1px; }
   #vn_home .item::before { left: 22px; } #vn_home .item::after { display: block; right: 22px; }
   #vn_home .t1 { font-size: 78px; letter-spacing: 0.18em; padding-left: 0.18em; }
   #vn_home .orn span { width: 130px; }
   #vn_home .t2 { font-size: 36px; letter-spacing: 0.5em; padding-left: 0.5em; }
-  #vn_home .menu { bottom: 8%; }
   #vn_home .item { font-size: 36px; min-width: 380px; padding: 12px 0 12px 0.5em; }
   .vn_slots { grid-template-columns: 1fr; }
   .vn_slot .thumb { flex-basis: 170px; height: 96px; align-self: center; }
