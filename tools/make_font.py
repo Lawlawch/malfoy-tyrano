@@ -76,7 +76,10 @@ for tag, w, wt in (("R", "Regular", 400), ("B", "Bold", 700)):
         fn = "%s-%s.woff2" % (tag, name); f.flavor = "woff2"; f.save(os.path.join(SL, fn))
         css.append("@font-face { font-family: 'VN Serif'; font-style: normal; font-weight: %d; font-display: swap; src: url('./slices/%s') format('woff2'); unicode-range: %s; }" % (wt, fn, ranges(cps)))
     print(w, "done")
-open(os.path.join(OUT, "fonts.css"), "w").write("\n".join(css) + "\n")
+import re as _re
+_c = "\n".join(css)
+_c = _re.sub(r"\s*([{};:,])\s*", r"\1", _c)
+open(os.path.join(OUT, "fonts.css"), "w").write(_c + "\n")  # 壓縮輸出
 pre = "".join(sorted(text, key=ord))
 open(os.path.join(OUT, "vn_preload.js"), "w", encoding="utf-8").write("window.VN_PRELOAD = %s;\n" % ('"' + pre.replace("\\", "\\\\").replace('"', '\\"') + '"'))
 tot = sum(os.path.getsize(os.path.join(SL, x)) for x in os.listdir(SL))

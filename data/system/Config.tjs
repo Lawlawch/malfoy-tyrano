@@ -121,7 +121,7 @@
 // Setting to "default" will use the standard arrow cursor.
 // If you wish to use a custom image cursor, place the file in the image folder and specify the file name.
 // The [cursor] tag can also change the cursor during gameplay.
-;cursorDefault = pointer; // Standard mouse cursor
+;cursorDefault = default; // Standard mouse cursor
 
 // ◆ Default Media Format
 // Specify the default format for sound and video.
@@ -160,7 +160,7 @@
 
 // If you do not wish to display thumbnails during save/load, set this to false.
 // (On some older devices, disabling thumbnails may not resolve save function issues.)
-;configThumbnail    = true;
+;configThumbnail    = false;
 
 // Specify the quality of thumbnail images when using them.
 // For browser or smartphone support with WebStorage, "low" or "middle" is recommended.

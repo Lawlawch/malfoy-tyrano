@@ -560,6 +560,7 @@
   // 同步「自動／略過」按鈕狀態，並在系統畫面開啟時暫時隱藏工具列
   if (VN._timer) { clearInterval(VN._timer); }
   VN._timer = setInterval(function () {
+    if (document.hidden) return;      // 分頁在背景時不工作，省電
     var $bar = $("#vn_toolbar");
     if (!$bar.length) return;
     $bar.find('[data-act="auto"]').toggleClass("active", !!TG.stat.is_auto);
@@ -576,7 +577,7 @@
     if (document.fonts) {
       var pre = (window.VN_PRELOAD || "") + "，。「」？！…— ";    // 劇本與介面用字所在的分片，開機先載入，出字時不會換字型
       document.fonts.load('400 24px "VN Serif"', pre);
-      document.fonts.load('700 24px "VN Serif"', pre);
+      document.fonts.load('700 24px "VN Serif"', "鉑金色的馬份蛇與獅之歌繼續新遊戲讀檔儲思盆圖鑑設定存檔紀錄返回標題第章年級");   // 粗體只預載介面用字，其餘用到才載入
       document.fonts.addEventListener("loadingdone", function () { if (typeof window.vnLayout !== "function") return; VN.layoutChoices(0); VN.placePlate(); });
     }
   } catch (e) {}
