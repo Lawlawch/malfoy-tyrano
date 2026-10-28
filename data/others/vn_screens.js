@@ -227,15 +227,35 @@
   /* =============================================================
      存檔／讀檔
      ============================================================= */
+  // 章節標題只顯示「一年級．第一章」
+  function shortChapter(t) {
+    return String(t || "").split(/[\s\u3000]/)[0].replace(/^第([一二三四五六七])年級/, "$1年級").replace(/・/g, "．");
+  }
   function slotHtml(label, meta) {
     if (!meta) { return '<div class="no">' + esc(label) + '</div><div class="vn_slot_empty">— 空 —</div>'; }
     var old = "";
     if (meta.fmt !== VN.SAVE_FORMAT) { old = '<div class="old">舊格式的存檔，無法讀取</div>'; }
     else if (meta.ver !== VN.SAVE_VERSION) { old = '<div class="old">劇本已更新，將從段落開頭讀取</div>'; }
-    return '<div class="no">' + esc(label) + '</div>' + old +
-      '<div class="tm">' + esc(meta.time) + "</div>" +
-      '<div class="ch">' + esc(meta.chapter) + "</div>" +
-      '<div class="ln">' + esc(meta.line) + "</div>";
+    return '<div class="thumb"' + ((meta.th > meta.tw) ? ' data-p="1"' : "") + '></div><div class="info">' +
+      '<div class="hd"><span class="no">' + esc(label) + '</span><span class="tm">' + esc(meta.time) + "</span></div>" +
+      '<div class="ch">' + esc(shortChapter(meta.chapter)) + "</div>" + old +
+      '<div class="ln">' + esc(meta.line) + '</div><div class="act"></div></div>';
+  }
+  // 手動存檔的縮圖：只拍背景、角色、對話框，不含工具列、選項、面板
+  function captureThumb(cb) {
+    try {
+      if (!window.html2canvas) { cb(null); return; }
+      var el = document.getElementById("tyrano_base"), r = el.getBoundingClientRect();
+      var sc = 384 / Math.max(r.width, r.height);
+      window.html2canvas(el, {
+        scale: sc, useCORS: true, backgroundColor: null, logging: false,
+        ignoreElements: function (n) {
+          return n.id === "vn_toolbar" || n.id === "vn_toast" || n.id === "vn_dim" || n.id === "vn_confirm" ||
+            (n.classList && (n.classList.contains("vn_scr") || n.classList.contains("glink_button")));
+        }
+      }).then(function (cv) { cb({ url: cv.toDataURL("image/jpeg", 0.6), w: cv.width, h: cv.height }); })
+        .catch(function () { cb(null); });
+    } catch (e) { cb(null); }
   }
 
   function openSaveLoad(mode) {            // mode = "save" | "load"
@@ -256,6 +276,7 @@
         }
         items.forEach(function (it) {
           var $s = $('<div class="vn_slot"></div>').html(slotHtml(it.label, it.meta)).toggleClass("empty", !it.meta);
+          if (it.meta && it.meta.thumb) { $s.find(".thumb").css("background-image", "url(" + it.meta.thumb + ")"); }
           $s.vntap(function () {
             if (mode === "load") {
               if (it.meta) { VN.loadSlot(it.id); }
@@ -274,7 +295,7 @@
                 DB.del("snap", it.id, function () { DB.del("meta", it.id, function () { VN.msg(S.$r, "已刪除 " + it.label); render(); }); });
               });
             });
-            $s.append($del);
+            $s.find(".act").append($del);
           }
           $g.append($s);
         });
@@ -283,15 +304,18 @@
     function doSave(id, label) {
       var f = TG.stat.f;
       var line = (VN.log.length ? VN.log[VN.log.length - 1].text : "");
-      TG.menu.snapSave("<span>" + (f.chapter_title || "") + "</span>", function () {
-        var snap = TG.menu.snap;
-        var meta = $.extend(VN.makeMeta(line), { kind: "m", auto_next: "no" });
-        if (snap.stat && snap.stat.load_auto_next === true) { meta.auto_next = "yes"; snap.stat.load_auto_next = false; }
-        saveSlot(id, snap, meta, function (ok) {
-          VN.msg(S.$r, ok ? "已存入 " + label : "存檔失敗（瀏覽器容量不足？）");
-          render();
-        });
-      }, "false");
+      captureThumb(function (th) {
+        TG.menu.snapSave("<span>" + (f.chapter_title || "") + "</span>", function () {
+          var snap = TG.menu.snap;
+          var meta = $.extend(VN.makeMeta(line), { kind: "m", auto_next: "no" });
+          if (th) { meta.thumb = th.url; meta.tw = th.w; meta.th = th.h; }
+          if (snap.stat && snap.stat.load_auto_next === true) { meta.auto_next = "yes"; snap.stat.load_auto_next = false; }
+          saveSlot(id, snap, meta, function (ok) {
+            VN.msg(S.$r, ok ? "已存入 " + label : "存檔失敗（瀏覽器容量不足？）");
+            render();
+          });
+        }, "false");
+      });
     }
     render();
   }
@@ -586,6 +610,7 @@
     f.on_title = 0;
     f.chapter_title = title;
     f.vn_chapter = id;
+    VN.hideBoot();
     VN.stopSkipAuto();                                // 進入新章節：停止略過／自動
     VN.toolbar(true);
     VN.track = true;
@@ -640,7 +665,7 @@
       '<span class="vn_end_btn" data-a="home">回首頁</span></div>' +
       '<div class="corner"></div></div></div></div>'
     );
-    $e.find(".small").text("第一年級・第" + VN.numCN[c.n] + "章");
+    $e.find(".small").text("一年級・第" + VN.numCN[c.n] + "章");
     $e.find(".big").text(c.title);
     $e.find(".phrase").text(c.phrase || "這段記憶已被儲思盆收藏。");
     if (!canNext) { $e.find('[data-a="next"]').addClass("off"); }
@@ -666,8 +691,9 @@
       if (hasAuto) { items.push(["continue", "繼續"]); }
       items.push(["new", "新遊戲"], ["load", "讀檔"], ["chapters", "儲思盆"], ["gallery", "圖鑑"], ["config", "設定"]);
       var $h = $(
-        '<div id="vn_home"><div class="grad"></div>' +
-        '<div class="ttl"><div class="t1">月光下的馬份</div><div class="t2">蛇與獅之間</div></div>' +
+        '<div id="vn_home"><div class="bg"><div class="stars"></div><div class="moon"></div><svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="vnh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1022"/><stop offset="1" stop-color="#05060d"/></linearGradient></defs><path fill="url(#vnh)" d="M0 600V470l60-20 40 30 70-60 50 40 90-30V600zM560 600V420h30v-50h20v-60l15-35 15 35v60h20v50h35v-90h24l16-40 16 40h24v90h30V330l18-70 18 70v90h44v60h60V400h22l14-60 14 60h22v-40h40v240zM1120 600V380l25-30v-60l20-50 20 50v60l25 30v220zM1260 600V450l50-30 50 30v-70l20-40 20 40v70l40-20 40 40 70-30V600z"/><path fill="#05060d" d="M0 600V540l180-30 200 40 220-20 240 30 260-40 300 30 200-20V600z"/><g fill="#f3c26b" opacity=".85"><rect x="612" y="395" width="5" height="9"/><rect x="760" y="330" width="5" height="9"/><rect x="842" y="380" width="5" height="9"/><rect x="1150" y="330" width="5" height="9"/><rect x="1146" y="420" width="5" height="9"/><rect x="1328" y="400" width="5" height="9"/><rect x="940" y="410" width="5" height="9"/></g></svg></div><div class="veil"></div>' +
+        '<div class="frame"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>' +
+        '<div class="ttl"><div class="t1">鉑金色的馬份</div><div class="orn"><span></span><i></i><span></span></div><div class="t2">蛇與獅之歌</div></div>' +
         '<div class="menu"></div></div>'
       );
       items.forEach(function (it) {
@@ -676,6 +702,7 @@
         $h.find(".menu").append($a);
       });
       $("#tyrano_base").append($h);
+      VN.hideBoot();
       VN.applyCfg(false);
       if (VN.pendingPanel) { var p = VN.pendingPanel; VN.pendingPanel = null; VN.openPanel(p); }
     },

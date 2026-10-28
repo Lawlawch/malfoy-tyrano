@@ -2,7 +2,7 @@
 ; first.ks  最先執行的檔案（初始化）
 ;==============================================================
 
-[title name="月光下的馬份：蛇與獅之間"]
+[title name="Platinum Malfoy — Song of the Serpent and the Lion"]
 
 [stop_keyconfig]
 
@@ -46,10 +46,10 @@ window.vnLayout = function () {
     // 橫向 1280 x 720
     return {
       land: true, w: 1280, h: 720,
-      font: F(28), name_size: F(28), name_x: 180, name_y: 508,
-      msg_left: 160, msg_top: 500, msg_w: 1000, msg_h: 200,
-      m_t: 55, m_l: 50, m_r: 70, m_b: 40,
-      chara_w: 320, chara_top: 30,
+      font: F(28), name_size: F(28), name_x: 180, name_y: 478,
+      msg_left: 160, msg_top: 470, msg_w: 1000, msg_h: 230,
+      m_t: 30, m_l: 50, m_r: 70, m_b: 24,
+      chara_w: 300, chara_top: 62,
       slot_left: 120, slot_center: 420, slot_right: 720,
       sel_x: 360, sel_w: 560, sel_y0: 120, sel_step: 100, sel_size: 28,
       title_y: 120, title_size: 80, sub_size: 40,
@@ -65,9 +65,9 @@ window.vnLayout = function () {
     // 直向 720 x 1280
     return {
       land: false, w: 720, h: 1280,
-      font: F(36), name_size: F(36), name_x: 90, name_y: 872,
-      msg_left: 40, msg_top: 840, msg_w: 640, msg_h: 400,
-      m_t: 80, m_l: 50, m_r: 60, m_b: 40,
+      font: F(36), name_size: F(36), name_x: 90, name_y: 802,
+      msg_left: 40, msg_top: 770, msg_w: 640, msg_h: 470,
+      m_t: 44, m_l: 50, m_r: 60, m_b: 28,
       chara_w: 470, chara_top: 90,
       slot_left: 10, slot_center: 40, slot_right: 70,
       sel_x: 60, sel_w: 600, sel_y0: 260, sel_step: 150, sel_size: 36,

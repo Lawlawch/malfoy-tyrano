@@ -66,25 +66,93 @@
 
 .glink_button.vn_btn.vn_btn_off { opacity: 0.5; filter: grayscale(0.4); cursor: default; }
 
-/* ---------- 對話框 ---------- */
+
+/* =============================================================
+   羊皮紙質感：不均勻泛黃暈染 + 邊緣燒焦暗角 + 細紙纖維
+   （全部 CSS／內嵌 SVG，沒有圖片檔。對話框、旁白框、各面板、確認視窗共用）
+   ============================================================= */
+:root {
+  --vn-fiber: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360'><filter id='f' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.01 0.35' numOctaves='3' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.42  0 0 0 0 0.27  0 0 0 0 0.1  0.9 0 0 0 -0.36'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>");
+  --vn-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='g' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.36  0 0 0 0 0.22  0 0 0 0 0.08  0.8 0 0 0 -0.3'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+  --vn-paper:
+    var(--vn-fiber), var(--vn-grain),
+    radial-gradient(ellipse 38% 55% at 14% 24%, rgba(196, 140, 52, 0.34), rgba(196, 140, 52, 0) 100%),
+    radial-gradient(ellipse 42% 60% at 86% 72%, rgba(176, 120, 44, 0.30), rgba(176, 120, 44, 0) 100%),
+    radial-gradient(ellipse 30% 40% at 52% 92%, rgba(210, 160, 70, 0.28), rgba(210, 160, 70, 0) 100%),
+    radial-gradient(ellipse 26% 34% at 60% 8%, rgba(255, 250, 225, 0.55), rgba(255, 250, 225, 0) 100%),
+    linear-gradient(172deg, #f6e8c4 0%, #ecd7a2 52%, #e2c88d 100%);
+  --vn-paper-old:
+    var(--vn-fiber), var(--vn-grain),
+    radial-gradient(ellipse 40% 60% at 80% 30%, rgba(150, 96, 36, 0.38), rgba(150, 96, 36, 0) 100%),
+    radial-gradient(ellipse 36% 50% at 12% 78%, rgba(140, 86, 30, 0.34), rgba(140, 86, 30, 0) 100%),
+    linear-gradient(172deg, #e7d19b 0%, #d9bd82 55%, #cdae6f 100%);
+  --vn-paper-tag:
+    var(--vn-grain),
+    radial-gradient(ellipse 60% 90% at 30% 30%, rgba(255, 248, 220, 0.6), rgba(255, 248, 220, 0) 100%),
+    linear-gradient(180deg, #f3e2b4, #dcc184);
+  --vn-burn: inset 0 0 22px 4px rgba(96, 52, 14, 0.55), inset 0 0 64px 6px rgba(140, 86, 28, 0.38);
+}
+
+/* ---------- 對話框（有說話者）---------- */
 .message0_fore .message_outer,
 .message0_back .message_outer {
-  background: linear-gradient(180deg, rgba(249, 237, 208, 0.96), rgba(228, 204, 150, 0.96)) !important;
+  background: var(--vn-paper) !important;
+  background-blend-mode: multiply, multiply, normal, normal, normal, normal, normal !important;
   border: 3px solid var(--vn-gold-dark) !important;
-  border-radius: 16px !important;
-  box-shadow:
-    inset 0 0 0 3px rgba(249, 237, 208, 0.9),
-    inset 0 0 0 5px var(--vn-gold),
-    0 8px 22px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--vn-burn), 0 8px 22px rgba(0, 0, 0, 0.5) !important;
+}
+/* ---------- 旁白框（沒有說話者）：卷軸（上下木軸＋金頭），紙色較舊、沒有四邊框線 ---------- */
+.vn-nar .message0_fore .message_outer,
+.vn-nar .message0_back .message_outer {
+  background: var(--vn-paper-old) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 0 14px 18px -8px rgba(60, 30, 6, 0.55), inset 0 -14px 18px -8px rgba(60, 30, 6, 0.55), 0 8px 22px rgba(0, 0, 0, 0.55) !important;
 }
 .message0_fore .message_inner,
 .message0_back .message_inner,
 .message0_fore .message_inner span,
 .message0_back .message_inner span {
   color: var(--vn-ink) !important;   /* 統一文字色（已讀文字不再變藍） */
-  line-height: 1.7;
+  line-height: 1.6;
   letter-spacing: 0.04em;
 }
+.vn-nar .message0_fore .message_inner,
+.vn-nar .message0_back .message_inner,
+.vn-nar .message0_fore .message_inner span,
+.vn-nar .message0_back .message_inner span {
+  color: #3a2614 !important;
+  line-height: 1.65;
+  letter-spacing: 0.07em;
+}
+
+/* ---------- 對話框／旁白框的裝飾框（疊在框上，不擋操作）---------- */
+#vn_frame { position: absolute; display: none; z-index: 499990; pointer-events: none; }
+#vn_frame.on { display: block; }
+#vn_frame.hid { display: none !important; }
+#vn_frame .f1 { position: absolute; inset: 6px; border: 2px solid var(--vn-gold); border-radius: 4px; box-shadow: 0 0 0 1px rgba(90, 58, 16, 0.55); }
+#vn_frame .f2 { position: absolute; inset: 13px; border: 1px solid rgba(201, 162, 74, 0.85); border-radius: 2px; }
+#vn_frame i { position: absolute; width: 13px; height: 13px; background: linear-gradient(135deg, #fff0b0, #c9a24a); border: 1px solid #5a3a10; transform: rotate(45deg); box-shadow: 0 0 6px rgba(241, 217, 138, 0.7); }
+#vn_frame i.tl { left: 0; top: 0; } #vn_frame i.tr { right: 0; top: 0; }
+#vn_frame i.bl { left: 0; bottom: 0; } #vn_frame i.br { right: 0; bottom: 0; }
+#vn_frame b { display: none; }
+/* 旁白：f1/f2 變成上、下兩根捲軸木桿 */
+#vn_frame.nar .f1, #vn_frame.nar .f2 {
+  inset: auto; left: -18px; right: -18px; height: 24px; border: 1px solid #2e1a08; border-radius: 12px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, #4a2c14 0%, #9a6a38 28%, #e0b97c 50%, #8a5a2c 74%, #3a2210 100%);
+}
+#vn_frame.nar .f1 { top: -13px; }
+#vn_frame.nar .f2 { bottom: -13px; top: auto; display: block; }
+#vn_frame.nar .f1::before, #vn_frame.nar .f1::after, #vn_frame.nar .f2::before, #vn_frame.nar .f2::after {
+  content: ""; position: absolute; top: -3px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid #5a3a10;
+  background: radial-gradient(circle at 35% 30%, #fff3bd, #c9a24a 55%, #7a5a14);
+}
+#vn_frame.nar .f1::before, #vn_frame.nar .f2::before { left: -10px; }
+#vn_frame.nar .f1::after, #vn_frame.nar .f2::after { right: -10px; }
+#vn_frame.nar i { display: none; }
+#vn_frame.nar b { display: none; }
+
 .chara_name_area { display: none !important; }   /* 內建名字欄不用，改用 #vn_plate */
 
 /* ---------- 角色名牌：疊在對話框左上角 ---------- */
@@ -93,19 +161,24 @@
   display: none;
   z-index: 500000;
   transform: translateY(-55%);
-  padding: 0.16em 1.2em 0.22em;
+  padding: 0.16em 1.3em 0.2em;
   font-family: var(--vn-serif);
   font-weight: 700;
   letter-spacing: 0.16em;
   white-space: nowrap;
   pointer-events: none;
-  color: var(--vn-gold-light);
-  background: linear-gradient(180deg, #9b2e3d, #5e1520);
-  border: 2px solid var(--vn-gold);
-  border-radius: 4px 16px 4px 16px;
-  box-shadow: 0 0 0 2px #3d0c14, 0 5px 12px rgba(0, 0, 0, 0.55);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  color: var(--vn-wine);
+  background: var(--vn-paper-tag);
+  border: 2px solid var(--vn-gold-dark);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 2px rgba(249, 237, 208, 0.85), inset 0 0 0 3px var(--vn-gold), inset 0 0 12px rgba(110, 62, 18, 0.45), 0 4px 10px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 245, 215, 0.8);
 }
+#vn_plate::before, #vn_plate::after {
+  content: ""; position: absolute; top: 50%; width: 9px; height: 9px; margin-top: -5px;
+  background: var(--vn-gold); border: 1px solid #5a3a10; transform: rotate(45deg);
+}
+#vn_plate::before { left: -6px; } #vn_plate::after { right: -6px; }
 #vn_plate.on { display: block; }
 #vn_plate.hid { display: none !important; }   /* 對話框被隱藏時，名牌一起隱藏 */
 
@@ -135,8 +208,8 @@
   color: var(--vn-ink);
   border-radius: 16px;
   border: 4px double var(--vn-gold-dark);
-  background: linear-gradient(180deg, var(--vn-parch-1), var(--vn-parch-2));
-  box-shadow: inset 0 0 40px rgba(138, 106, 31, 0.35), 0 10px 40px rgba(0, 0, 0, 0.65);
+  background: var(--vn-paper);
+  box-shadow: var(--vn-burn), 0 10px 40px rgba(0, 0, 0, 0.65);
 }
 #vn_confirm .vn_cf_title { font-size: 34px; font-weight: 700; letter-spacing: 0.18em; color: var(--vn-wine); }
 #vn_confirm .vn_cf_sub { white-space: pre-line; margin-top: 16px; font-size: 22px; line-height: 1.6; }
@@ -171,25 +244,35 @@
 }
 #vn_toolbar.on { display: flex; }
 #vn_toolbar.dim { visibility: hidden; }
+#vn_toolbar .vn_strip {
+  position: relative; pointer-events: auto;
+  display: flex; align-items: center; gap: 0;
+  padding: 7px 18px;
+  background: var(--vn-paper);
+  border: 2px solid var(--vn-gold-dark);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 3px rgba(249, 237, 208, 0.7), inset 0 0 0 4px var(--vn-gold), inset 0 0 14px 2px rgba(96, 52, 14, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+#vn_toolbar .vn_strip i { position: absolute; width: 10px; height: 10px; background: linear-gradient(135deg, #fff0b0, #c9a24a); border: 1px solid #5a3a10; transform: rotate(45deg); }
+#vn_toolbar .vn_strip i.tl { left: -6px; top: -6px; } #vn_toolbar .vn_strip i.tr { right: -6px; top: -6px; }
+#vn_toolbar .vn_strip i.bl { left: -6px; bottom: -6px; } #vn_toolbar .vn_strip i.br { right: -6px; bottom: -6px; }
+#vn_toolbar .vn_strip s { width: 6px; height: 6px; margin: 0 2px; background: var(--vn-gold); border: 1px solid #5a3a10; transform: rotate(45deg); flex: 0 0 auto; }
 #vn_toolbar button {
-  pointer-events: auto;
   cursor: pointer;
   font-family: var(--vn-serif);
   font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--vn-ink);
-  padding: 6px 14px;
-  border-radius: 8px;
-  border: 2px solid var(--vn-gold-dark);
-  background: linear-gradient(180deg, var(--vn-parch-1), var(--vn-parch-3));
-  box-shadow: inset 0 0 0 2px var(--vn-parch-1), 0 3px 8px rgba(0, 0, 0, 0.45);
+  padding: 4px 9px;
+  background: none; border: 0; border-radius: 4px;
+  text-shadow: 0 1px 0 rgba(255, 245, 215, 0.8);
 }
-#vn_toolbar button:hover { filter: brightness(1.08); }
+#vn_toolbar button:hover { color: var(--vn-wine); text-shadow: 0 0 8px rgba(241, 217, 138, 0.95), 0 1px 0 rgba(255, 245, 215, 0.8); }
 #vn_toolbar button.active {
   color: var(--vn-parch-1);
   background: linear-gradient(180deg, #a03342, var(--vn-wine));
-  border-color: var(--vn-gold-light);
+  text-shadow: none;
 }
 @media (min-aspect-ratio: 1/1) {
   #vn_toolbar { justify-content: flex-end; padding-right: 16px; box-sizing: border-box; }
@@ -236,8 +319,8 @@
   flex-direction: column;
   border-radius: 18px;
   border: 4px double var(--vn-gold-dark);
-  background: linear-gradient(180deg, var(--vn-parch-1), var(--vn-parch-2));
-  box-shadow: inset 0 0 40px rgba(138, 106, 31, 0.35), 0 10px 40px rgba(0, 0, 0, 0.6);
+  background: var(--vn-paper);
+  box-shadow: var(--vn-burn), 0 10px 40px rgba(0, 0, 0, 0.6);
   overflow: hidden;
 }
 .vn_sys_head {

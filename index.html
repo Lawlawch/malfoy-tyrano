@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Loading TyranoScript</title>
+        <title>載入中…</title>
 
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
         <meta name="robots" content="noindex,nofollow" />
 
+        <style>
+            #vn_boot { position: fixed; inset: 0; z-index: 2147483647; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+                background: radial-gradient(ellipse at 50% 42%, #2a1d35 0%, #120b18 70%, #08040b 100%); color: #f1d98a;
+                font-family: 'Noto Serif TC', 'Songti TC', 'STSong', 'PMingLiU', serif; transition: opacity 0.5s ease; }
+            #vn_boot.hide { opacity: 0; pointer-events: none; }
+            #vn_boot .spin { width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(241, 217, 138, 0.2); border-top-color: #f1d98a; animation: vn_boot_spin 1s linear infinite; }
+            #vn_boot .txt { font-size: 22px; letter-spacing: 0.4em; padding-left: 0.4em; }
+            @keyframes vn_boot_spin { to { transform: rotate(360deg); } }
+        </style>
         <link href="./tyrano/tyrano.css" rel="stylesheet" />
         <link href="./tyrano/libs/jquery-ui/jquery-ui.css" rel="stylesheet" />
 
@@ -92,6 +101,8 @@
     </head>
 
     <body onselectstart="return false" onContextmenu="return false" ontouchmove="event.preventDefault()">
+        <div id="vn_boot"><div class="spin"></div><div class="txt">載入中…</div></div>
+        <script>setTimeout(function () { var b = document.getElementById("vn_boot"); if (b) { b.className = "hide"; } }, 30000);</script>
         <div id="tyrano_base" class="tyrano_base" style="overflow: hidden" unselectable="on" ondragstart="return false"></div>
         <div id="vchat_base" class="vchat_base" style="overflow: hidden" unselectable="on" ondragstart="return false"></div>
 

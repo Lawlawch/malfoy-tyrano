@@ -27,7 +27,7 @@
   /* ---------- 說話者資料（頭像）----------
      key = [chara_new] 的角色 id，或 #後面直接寫的名字（例如第一人稱「哈利」）。
      頭像檔放在 data/others/avatar/，每個角色一張。 */
-  VN.avatars = { draconia: "draconia", hagrid: "hagrid", malkin: "malkin", ron: "ron", molly: "molly", "哈利": "harry", unknown: "unknown" };
+  VN.avatars = { draconia: "draconia", hagrid: "hagrid", malkin: "malkin", ron: "ron", molly: "molly", "哈利": "harry", unknown: "unknown", "？？？": "unknown" };
   VN.avatarUrl = function (key) {
     return "./data/others/avatar/" + (VN.avatars[key] || "harry") + ".png";
   };
@@ -45,7 +45,7 @@
 
   // 劇本版本：章節劇本有改動就把這個字串改掉。版本不同的存檔不會被擋下，
   // 而是走「錨點相容讀檔」（退回場景錨點或章節開頭重播）。
-  VN.SAVE_VERSION = "v8.2";   // 劇本版本：章節劇本有改動就可以升（舊存檔會走「錨點相容讀檔」，不會失效）
+  VN.SAVE_VERSION = "v8.5";   // 劇本版本：章節劇本有改動就可以升（舊存檔會走「錨點相容讀檔」，不會失效）
   VN.SAVE_FORMAT = 2;          // 存檔格式：只有存檔資料結構改了才升（不同格式的存檔無法讀取）
 
   /* ---------- sf（系統變數）工具 ---------- */
@@ -132,6 +132,10 @@
   } catch (e) { console.warn("keyconfig override", e); }
   VN.swallow = swallow;
   VN.stopSkipAuto = stopSkipAuto;
+  VN.hideBoot = function () {            // 隱藏 index.html 的「載入中」畫面
+    var b = document.getElementById("vn_boot");
+    if (b) { b.className = "hide"; setTimeout(function () { if (b.parentNode) { b.parentNode.removeChild(b); } }, 600); }
+  };
 
   /* ---------- 已讀記錄（逐句，取代 Tyrano 的標籤式已讀）----------
      每顯示一句對白，就用「章節＋這句文字」算出短代碼，存進 sf.vn_read[章節id]（以逗號分隔的字串）。
@@ -248,16 +252,22 @@
   VN.placePlate = function () {
     var L = window.vnLayout();
     $("#vn_plate").css({
-      left: L.msg_left + 26,
+      left: L.msg_left + 30,
       top: L.msg_top,
       fontSize: Math.round(L.name_size * 0.92) + "px"
     });
+    $("#vn_frame").css({ left: L.msg_left, top: L.msg_top, width: L.msg_w, height: L.msg_h });
   };
   VN.updatePlate = function (info) {
     var $p = $("#vn_plate");
     if (!$p.length) return;
     var f = TG.stat.f;
-    if (!info || f.on_title == 1) { $p.removeClass("on"); return; }
+    var $fr = $("#vn_frame");
+    if (f.on_title == 1) { $p.removeClass("on"); $fr.removeClass("on"); return; }
+    // 有說話者 → 對話框（有名牌）；沒有 → 旁白框（用 # 空名稱的行）
+    $("#tyrano_base").toggleClass("vn-nar", !info);
+    $fr.toggleClass("nar", !info).addClass("on");
+    if (!info) { $p.removeClass("on"); VN.placePlate(); return; }
     $p.text(info.name).addClass("on");
     VN.placePlate();
   };
@@ -391,6 +401,26 @@
   if (VN._hooked) { try { TG.off("tag-text-message.vnui"); TG.off("tag-text-message.vnautosave"); TG.off("click-tag-glink.vnui"); TG.off("messagewindow-hide.vnui"); TG.off("messagewindow-show.vnui"); } catch (e) {} }
   VN._hooked = true;
 
+  /* ---------- 文字太長時，自動縮小這一句的字級，確保不超出對話框 ---------- */
+  VN.fitFont = function (html, narr) {
+    try {
+      var L = window.vnLayout();
+      var w = L.msg_w - L.m_l - L.m_r, h = L.msg_h - L.m_t - L.m_b;
+      var size = L.font, min = Math.round(L.font * 0.72);
+      var $d = $('<div></div>').css({ position: "absolute", left: 0, top: 0, visibility: "hidden", width: w + "px",
+        fontFamily: "'VN Serif', serif", letterSpacing: narr ? "0.07em" : "0.04em", lineHeight: narr ? 1.65 : 1.6, wordBreak: "normal" });
+      $("body").append($d);
+      $d.text(VN.plain(html));
+      while (size > min) {
+        $d.css("fontSize", size + "px");
+        if ($d.get(0).getBoundingClientRect().height <= h) break;
+        size -= 2;
+      }
+      $d.remove();
+      return size;
+    } catch (e) { return null; }
+  };
+
   // 每次顯示一句對話
   TG.on("tag-text-message.vnui", function (e) {
     try {
@@ -399,6 +429,8 @@
       var info = VN.speaker();
       VN.updatePlate(info);
       if (f.on_title == 1) return;
+      var fs = VN.fitFont(pm.val, !info);
+      if (fs) { TG.stat.font.size = fs; }
       if (f.vn_chapter && VN.track) {
         var was = VN.readMark(f.vn_chapter, VN.plain(pm.val));
         var only = true; try { only = !!VN.cfg().skipRead; } catch (e2) {}
@@ -435,8 +467,8 @@
   });
 
   // 對話框被隱藏（右鍵／工具列「隱藏」）時，名牌一起隱藏
-  TG.on("messagewindow-hide.vnui", function () { $("#vn_plate").addClass("hid"); });
-  TG.on("messagewindow-show.vnui", function () { $("#vn_plate").removeClass("hid"); });
+  TG.on("messagewindow-hide.vnui", function () { $("#vn_plate, #vn_frame").addClass("hid"); });
+  TG.on("messagewindow-show.vnui", function () { $("#vn_plate, #vn_frame").removeClass("hid"); });
 
   // 按下任何選項：解除變暗
   TG.on("click-tag-glink.vnui", function () { VN.choiceUndim(); });
@@ -481,8 +513,10 @@
 
   function buildToolbar() {
     if ($("#vn_toolbar").length) return;
-    var $bar = $('<div id="vn_toolbar"></div>');
-    labels.forEach(function (pair) {
+    var $bar = $('<div id="vn_toolbar"><div class="vn_strip"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div></div>');
+    var $strip = $bar.find(".vn_strip");
+    labels.forEach(function (pair, idx) {
+      if (idx) { $strip.append('<s></s>'); }
       var $b = $('<button type="button" data-act="' + pair[0] + '">' + pair[1] + "</button>");
       $b.on("click touchend", function (e) {
         e.preventDefault();
@@ -491,10 +525,11 @@
         else if ($b.data("touched") && Date.now() - $b.data("touched") < 500) { return; }
         try { actions[pair[0]](); } catch (err) { console.warn("toolbar", pair[0], err); }
       });
-      $bar.append($b);
+      $strip.append($b);
     });
     $("#tyrano_base").append($bar);
     $("#tyrano_base").append('<div id="vn_toast"></div>');
+    $("#tyrano_base").append('<div id="vn_frame"><div class="f1"></div><div class="f2"></div><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i><b></b></div>');
     $("#tyrano_base").append('<div id="vn_plate"></div>');
   }
 
@@ -505,6 +540,7 @@
       VN.track = false;
       $("#vn_toast").removeClass("show");
       $("#vn_plate").removeClass("on");
+      $("#vn_frame").removeClass("on");
       VN.choiceUndim();
     }
   };
@@ -518,6 +554,7 @@
     $bar.find('[data-act="skip"]').toggleClass("active", !!TG.stat.is_skip);
     $bar.find('[data-act="hide"]').toggleClass("active", !!TG.stat.is_hide_message);
     $("#vn_plate").toggleClass("hid", !!TG.stat.is_hide_message);
+    $("#vn_frame").toggleClass("hid", !!TG.stat.is_hide_message || !$(".message0_fore").is(":visible"));
     var menuOpen = $(".layer_menu").is(":visible");
     $bar.toggleClass("dim", menuOpen);
   }, 250);

@@ -1,5 +1,5 @@
 ;==============================================================
-; 第一年級　第一章　長袍店的金髮少女
+; 一年級　第一章　長袍店的金髮少女
 ; 視角：哈利（第一人稱）
 ; 隱藏數值：f.bond 羈絆 / f.courage 勇氣 / f.wit 機智 / f.shadow 暗影
 ; 選擇旗標：f.c1_open（初次回應）/ f.c1_hagrid（對海格的態度）
@@ -10,7 +10,7 @@
 [clearfix]
 [start_keyconfig]
 @layopt layer="message0" visible=true
-[chapter_begin id="ch1_01" title="第一年級・第一章　長袍店的金髮少女"]
+[chapter_begin id="ch1_01" title="一年級・第一章　長袍店的金髮少女"]
 
 ;--- 角色宣告（立繪放在 data/fgimage/chara/角色名/ 之下）------------
 [chara_config ptext="chara_name_area"]
@@ -308,7 +308,7 @@ if (f.debug == 1) { console.log("[隱藏數值] 羈絆", f.bond, "勇氣", f.cou
 [endscript]
 
 #
-第一年級　第一章　完。[p]
+一年級　第一章　完。[p]
 
 [cm]
 [hide_all_c time=0]

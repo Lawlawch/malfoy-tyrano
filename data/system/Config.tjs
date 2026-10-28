@@ -14,7 +14,7 @@
 
 // ◆ Title
 // This sets the window caption (title) and is used as the title in browsers.
-;System.title = "TyranoScript";
+;System.title = "Platinum Malfoy — Song of the Serpent and the Lion";
 
 
 // ◆ Unique Project Identifier (TyranoScript specific setting)
