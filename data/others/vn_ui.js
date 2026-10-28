@@ -574,8 +574,9 @@
   // 字體載入完成後，選項與名牌重新排版（避免字體換上去後文字換行、框互相重疊）
   try {
     if (document.fonts) {
-      document.fonts.load('400 24px "VN Serif"');
-      document.fonts.load('700 24px "VN Serif"');
+      var pre = (window.VN_PRELOAD || "") + "，。「」？！…— ";    // 劇本與介面用字所在的分片，開機先載入，出字時不會換字型
+      document.fonts.load('400 24px "VN Serif"', pre);
+      document.fonts.load('700 24px "VN Serif"', pre);
       document.fonts.addEventListener("loadingdone", function () { if (typeof window.vnLayout !== "function") return; VN.layoutChoices(0); VN.placePlate(); });
     }
   } catch (e) {}

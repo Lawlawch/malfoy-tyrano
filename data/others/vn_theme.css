@@ -3,18 +3,8 @@
    全部用 CSS 繪製，不依賴圖片。之後要換成美術素材，改這個檔即可。
    ============================================================= */
 
-/* 字型：思源宋體（Noto Serif TC）子集，已內嵌在 others/font/，不需連網。
-   子集沒有的字會自動退回系統宋體（見 --vn-serif 的備援順序）。 */
-@font-face {
-  font-family: 'VN Serif';
-  src: url('./font/NotoSerifTC-Regular.subset.woff2') format('woff2');
-  font-weight: 400; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'VN Serif';
-  src: url('./font/NotoSerifTC-Bold.subset.woff2') format('woff2');
-  font-weight: 700; font-style: normal; font-display: swap;
-}
+/* 字型：思源宋體（Noto Serif TC）完整字型，切成小分片（others/font/slices/），由 font/fonts.css 宣告 @font-face，
+   瀏覽器只下載畫面上用到的字所在的分片。重新產生：python3 tools/make_font.py */
 
 :root {
   --vn-ink: #3b2a1a;
@@ -452,6 +442,7 @@
 .vn_log_text { color: var(--vn-ink); word-break: break-all; }
 
 /* ---------- 等待點擊的小羽毛筆（取代預設白點）---------- */
+.img_next { vertical-align: middle; margin: -14px 0 -14px 6px; }   /* 不占行高，出現時文字不會被推動 */
 .img_next, .glyph_image { animation: vnQuill 1.3s ease-in-out infinite; transform-origin: 20% 90%; }
 @keyframes vnQuill { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-5px) rotate(4deg); } }
 #vn_cover { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #000; z-index: 2500000; transition: opacity 0.5s ease; }

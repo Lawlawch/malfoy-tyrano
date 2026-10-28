@@ -30,8 +30,10 @@ TG.config.alreadyReadTextColor = "default"; // 已讀文字不變色（預設會
 ;--------------------------------------------------------------
 ; 介面主題與自訂系統
 ;--------------------------------------------------------------
+[loadcss file="./data/others/font/fonts.css"]
 [loadcss file="./data/others/vn_theme.css"]
 [loadcss file="./data/others/vn_screens.css"]
+[loadjs storage="font/vn_preload.js"]
 [loadjs storage="vn_ui.js"]
 [loadjs storage="vn_screens.js"]
 
