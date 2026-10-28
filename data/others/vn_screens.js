@@ -254,7 +254,7 @@
       var jobs = [];
       var bgEl = document.querySelector("#tyrano_base .layer.base_fore");
       var m = bgEl && /url\(["']?([^"')]+)["']?\)/.exec(getComputedStyle(bgEl).backgroundImage || "");
-      if (m) { jobs.push({ src: m[1], x: 0, y: 0, w: W, h: H, a: 1 }); }
+      if (m) { jobs.push({ src: m[1], x: 0, y: 0, w: W, h: H, a: 1, cover: true }); }
       $("#tyrano_base .tyrano_chara").each(function () {
         var c = this, img = $(c).find("img.chara_img").get(0); if (!img || !img.getAttribute("src")) return;
         var cs = getComputedStyle(c); if (cs.display === "none" || cs.visibility === "hidden") return;
@@ -263,7 +263,13 @@
       });
       var done = 0, imgs = [];
       var finish = function () {
-        jobs.forEach(function (jb, i) { var im = imgs[i]; if (!im) return; ctx.globalAlpha = isNaN(jb.a) ? 1 : jb.a; ctx.drawImage(im, jb.x * sc, jb.y * sc, jb.w * sc, jb.h * sc); });
+        jobs.forEach(function (jb, i) {
+          var im = imgs[i]; if (!im) return; ctx.globalAlpha = isNaN(jb.a) ? 1 : jb.a;
+          if (jb.cover) {      // 背景：等比例裁切填滿、置中（跟畫面上 background-size: cover 一致）
+            var s = Math.max(jb.w / im.width, jb.h / im.height), sw = jb.w / s, sh = jb.h / s;
+            ctx.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, jb.x * sc, jb.y * sc, jb.w * sc, jb.h * sc);
+          } else { ctx.drawImage(im, jb.x * sc, jb.y * sc, jb.w * sc, jb.h * sc); }
+        });
         ctx.globalAlpha = 1;
         try { cb({ url: cv.toDataURL("image/jpeg", 0.7), w: cv.width, h: cv.height }); } catch (e) { cb(null); }
       };
