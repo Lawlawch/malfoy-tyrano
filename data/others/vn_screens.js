@@ -141,7 +141,7 @@
   /* ---------- 設定值 ---------- */
   var TEXT_SPEED = [60, 35, 15, 3];
   var AUTO_SPEED = [2600, 1300, 700, 300];
-  var FONT_SCALE = [0.9, 1, 1.15, 1.3];
+  var FONT_SCALE = [0.9, 1, 1.2];
   var CFG_DEF = { text: 1, auto: 1, font: 1, skipRead: 1, bgm: 80, voice: 100, se: 80 };
 
   VN.cfg = function () {
@@ -168,6 +168,7 @@
     TG.config.unReadTextSkip = "true";   // Tyrano 自己的標籤式已讀不用了；「只略過已讀」改由 vn_ui.js 的逐句記錄處理（c.skipRead）
     TG.config.defaultBgmVolume = c.bgm;
     TG.config.defaultSeVolume = c.se;
+    if (!(c.font >= 0 && c.font < FONT_SCALE.length)) { c.font = FONT_SCALE.length - 1; }   // 舊設定的「特大」改為「大」
     sf.vn_font_scale = FONT_SCALE[c.font];
     VN.voiceVolume = c.voice;               // 之後語音巨集用這個值（0–100）
     if (live) {
@@ -534,7 +535,7 @@
       if (cat === 0) {
         seg("文字顯示速度", "text", ["慢", "普通", "快", "極快"]);
         seg("自動播放速度", "auto", ["慢", "普通", "快", "極快"]);
-        seg("字體大小", "font", ["小", "中", "大", "特大"], function () { if (TG.stat.f.on_title != 1) { VN.applyFont(); } });
+        seg("字體大小", "font", ["小", "中", "大"], function () { if (TG.stat.f.on_title != 1) { VN.applyFont(); } });
         var $r = $('<div class="vn_cfg_row"><span class="lb">只略過已讀的句子</span><span class="ctl vn_seg"></span></div>');
         [["開", 1], ["關", 0]].forEach(function (p) {
           var $o = $("<span></span>").text(p[0]).toggleClass("on", c.skipRead === p[1]);
