@@ -471,7 +471,7 @@
     if (document.fonts) {
       document.fonts.load('400 24px "VN Serif"');
       document.fonts.load('700 24px "VN Serif"');
-      document.fonts.addEventListener("loadingdone", function () { VN.layoutChoices(0); VN.placePlate(); });
+      document.fonts.addEventListener("loadingdone", function () { if (typeof window.vnLayout !== "function") return; VN.layoutChoices(0); VN.placePlate(); });
     }
   } catch (e) {}
 
