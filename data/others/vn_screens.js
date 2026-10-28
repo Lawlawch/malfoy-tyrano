@@ -9,7 +9,7 @@
 
   /* ---------- 資料：章節、CG、結局 ---------- */
   // ready = 這一章已經做好（可以進入）。做好新章節時，把 ready 改成 true。
-  VN.chapters.forEach(function (c) { c.ready = (c.id === "ch1_01"); });
+  VN.chapters.forEach(function (c) { c.ready = (c.id === "ch1_01" || c.id === "ch1_02"); });
   // 年級列表（儲思盆上方可左右切換）。二～四年級的章節尚未製作，會顯示為鎖定空格。
   VN.years = [
     { name: "一年級", ids: VN.chapters.map(function (c) { return c.id; }) },

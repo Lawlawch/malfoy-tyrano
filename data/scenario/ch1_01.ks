@@ -308,7 +308,7 @@ if (f.debug == 1) { console.log("[隱藏數值] 羈絆", f.bond, "勇氣", f.cou
 [endscript]
 
 #
-第一年級　第一章　完。（第二章製作中）[p]
+第一年級　第一章　完。[p]
 
 [cm]
 [hide_all_c time=0]

@@ -60,6 +60,8 @@ tf.rs = ($.isArray(f.stage) && mp.name != mp.except) ? VN.stagePos(f.stage, mp.n
 [relayout_c name="draconia" except=%except time=%time|0]
 [relayout_c name="hagrid" except=%except time=%time|0]
 [relayout_c name="malkin" except=%except time=%time|0]
+[relayout_c name="ron" except=%except time=%time|0]
+[relayout_c name="molly" except=%except time=%time|0]
 [endmacro]
 
 ;--------------------------------------------------------------

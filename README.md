@@ -1,10 +1,17 @@
-# 《月光下的馬份》（蛇與獅之間）｜Tyrano 測試包 v8
+# 《月光下的馬份》（蛇與獅之間）｜Tyrano 測試包 v8.1
 
 ## 安裝
 把 `data` 資料夾內容**合併覆蓋**進 Tyrano 專案的 `data`（不需動 Tyrano 引擎檔或 `Config.tjs`），推送到 GitHub。
 **請刪除專案裡舊的檔案**（v3 以前留下的，已不再使用）：
 `data/scenario/config.ks`、`gallery.ks`、`newgame.ks`、`data/others/html/`（整個資料夾）
 > 用無痕視窗測試，並按「新遊戲」。舊的自動存檔與舊存檔格式不相容。
+
+## v8.1 修改
+- **新增第二章《九又四分之三月台》**（`ch1_02.ks`，4 個錨點，3 次選擇，儲思盆與章末頁的「下一章」已接上）
+- 新角色：榮恩（`ron`：normal/happy/angry）、衛斯理夫人（`molly`：normal/happy），兩人自我介紹前名牌顯示「？？？」（已加入 `VN.unknownUntilMet`，用 `[meet]` 解除）
+- 新背景：`kings_cross.jpg`、`train_compartment.jpg`、`hogsmeade_station.jpg`；以上角色、背景、頭像（`avatar/ron.png`、`molly.png`）目前是佔位圖，由 `tools/make_placeholders.py`、`tools/make_avatars.py` 產生（已存在的檔案不會被覆蓋，換上正式圖後可放心重跑）
+- 第二章承接第一章：`f.c1_hagrid` 會影響馬份在車廂裡的一句話；`f.c2_hand`（握手／拒絕／要她道歉）影響月台尾聲她的反應，並留給後續章節使用
+- `VN.SAVE_VERSION` 升為 v8.1（舊存檔走錨點相容讀檔）
 
 ## v8 修改
 - **劇本更新後，舊存檔可以讀取**（不再封鎖）。做法是「場景錨點」：

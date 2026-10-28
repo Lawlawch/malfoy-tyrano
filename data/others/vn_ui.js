@@ -27,13 +27,13 @@
   /* ---------- 說話者資料（頭像）----------
      key = [chara_new] 的角色 id，或 #後面直接寫的名字（例如第一人稱「哈利」）。
      頭像檔放在 data/others/avatar/，每個角色一張。 */
-  VN.avatars = { draconia: "draconia", hagrid: "hagrid", malkin: "malkin", "哈利": "harry", unknown: "unknown" };
+  VN.avatars = { draconia: "draconia", hagrid: "hagrid", malkin: "malkin", ron: "ron", molly: "molly", "哈利": "harry", unknown: "unknown" };
   VN.avatarUrl = function (key) {
     return "./data/others/avatar/" + (VN.avatars[key] || "harry") + ".png";
   };
   // 這些角色在劇本用 [meet name="角色id"] 介紹自己之前，名牌顯示「？？？」、頭像用剪影。
   // 之後新角色若第一次出現時沒有被介紹，把角色 id 加進這個清單即可。
-  VN.unknownUntilMet = ["draconia"];
+  VN.unknownUntilMet = ["draconia", "ron", "molly"];
   VN.speaker = function () {
     var sp = TG.stat.current_speaker || "";
     if (!sp) return null;
@@ -43,9 +43,9 @@
     return { key: sp, name: name, avatar: avatar };
   };
 
-  // 存檔版本：只要章節劇本的行數有增減（舊存檔會對錯位置），就把這個字串改掉。
-  // 版本不符的存檔會被擋下並提示，不會讀到錯誤的位置。
-  VN.SAVE_VERSION = "v8.0";   // 劇本版本：章節劇本有改動就可以升（舊存檔會走「錨點相容讀檔」，不會失效）
+  // 劇本版本：章節劇本有改動就把這個字串改掉。版本不同的存檔不會被擋下，
+  // 而是走「錨點相容讀檔」（退回場景錨點或章節開頭重播）。
+  VN.SAVE_VERSION = "v8.1";   // 劇本版本：章節劇本有改動就可以升（舊存檔會走「錨點相容讀檔」，不會失效）
   VN.SAVE_FORMAT = 2;          // 存檔格式：只有存檔資料結構改了才升（不同格式的存檔無法讀取）
 
   /* ---------- sf（系統變數）工具 ---------- */
