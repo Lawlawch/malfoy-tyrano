@@ -20,7 +20,7 @@
 ; 系統設定（執行時覆蓋 Config.tjs，不用手動改 Config.tjs）
 ;--------------------------------------------------------------
 [iscript]
-TG.config.autoRecordLabel = "true";     // 記錄已讀（略過用）
+TG.config.autoRecordLabel = "false";    // 已讀記錄改由 vn_ui.js 逐句處理，不用 Tyrano 的標籤式已讀
 TG.config.alreadyReadTextColor = "default"; // 已讀文字不變色（預設會變淺藍）
 [endscript]
 

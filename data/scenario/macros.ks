@@ -83,8 +83,9 @@ VN.choiceBegin();
 [iscript]
 tf.L = window.vnLayout();
 tf.oname = "opt_all,opt_" + mp.i;
+tf.oexp = "VN.clearMsg();" + (mp.exp || "");
 [endscript]
-[glink color="vn_btn vn_opt" size="&tf.L.sel_size" x="&tf.L.sel_x" y="200" width="&tf.L.sel_w" text=%text target=%target exp=%exp name="&tf.oname"]
+[glink color="vn_btn vn_opt" size="&tf.L.sel_size" x="&tf.L.sel_x" y="200" width="&tf.L.sel_w" text=%text target=%target exp="&tf.oexp" name="&tf.oname"]
 [endmacro]
 
 [macro name="choice_end"]

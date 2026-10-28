@@ -45,7 +45,7 @@
 
   // 劇本版本：章節劇本有改動就把這個字串改掉。版本不同的存檔不會被擋下，
   // 而是走「錨點相容讀檔」（退回場景錨點或章節開頭重播）。
-  VN.SAVE_VERSION = "v8.1";   // 劇本版本：章節劇本有改動就可以升（舊存檔會走「錨點相容讀檔」，不會失效）
+  VN.SAVE_VERSION = "v8.2";   // 劇本版本：章節劇本有改動就可以升（舊存檔會走「錨點相容讀檔」，不會失效）
   VN.SAVE_FORMAT = 2;          // 存檔格式：只有存檔資料結構改了才升（不同格式的存檔無法讀取）
 
   /* ---------- sf（系統變數）工具 ---------- */
@@ -132,6 +132,54 @@
   } catch (e) { console.warn("keyconfig override", e); }
   VN.swallow = swallow;
   VN.stopSkipAuto = stopSkipAuto;
+
+  /* ---------- 已讀記錄（逐句，取代 Tyrano 的標籤式已讀）----------
+     每顯示一句對白，就用「章節＋這句文字」算出短代碼，存進 sf.vn_read[章節id]（以逗號分隔的字串）。
+     判斷完全不看標籤、錨點或行號：劇本改動後，沒改過的句子仍是已讀，只有被改過的句子變回未讀。 */
+  var _readSets = {}, _readDirty = 0;
+  function readHash(s) {
+    var h1 = 5381, h2 = 52711, i, c;
+    for (i = 0; i < s.length; i++) { c = s.charCodeAt(i); h1 = ((h1 * 33) ^ c) >>> 0; h2 = ((h2 * 31) + c) >>> 0; }
+    return (h1 >>> 2).toString(36) + (h2 >>> 14).toString(36);
+  }
+  function readSet(ch) {
+    var sf = TG.variable.sf; sf.vn_read = sf.vn_read || {};
+    var str = sf.vn_read[ch] || "";
+    var cache = _readSets[ch];
+    if (!cache || cache.str !== str) {
+      var set = {}; if (str) { str.split(",").forEach(function (k) { set[k] = 1; }); }
+      cache = _readSets[ch] = { set: set, str: str };
+    }
+    return cache;
+  }
+  // 回傳「這句在記錄之前是否已讀」，並把它記為已讀
+  VN.readMark = function (ch, text) {
+    var key = readHash(ch + "|" + String(text).replace(/\s+/g, " ").trim());
+    var cache = readSet(ch);
+    if (cache.set[key]) { return true; }
+    cache.set[key] = 1;
+    var sf = TG.variable.sf;
+    sf.vn_read[ch] = cache.str ? cache.str + "," + key : key;
+    cache.str = sf.vn_read[ch];
+    if (++_readDirty >= 15) { _readDirty = 0; VN.saveSf(); }
+    return false;
+  };
+  // 讀取自動存檔後直接進入選項時，對話框是空的：把存檔裡記的最後一句補回去
+  VN.restoreLine = function () {
+    var line = VN._restoreLine; VN._restoreLine = null;
+    if (!line) return;
+    try {
+      var $in = $(".message0_fore .message_inner");
+      if (!$in.length || $.trim($in.text())) return;
+      var L = window.vnLayout();
+      $in.append($('<span class="current_span"></span>').html(line).css({ fontSize: L.font + "px" }));
+      VN.updatePlate(VN.speaker());
+    } catch (e) { console.warn("restoreLine", e); }
+  };
+  VN.clearMsg = function () {            // 選了選項之後清掉對話框（選項出現時對話框保留最後一句）
+    try { TG.layer.clearMessageInnerLayerAll(); } catch (e) {}
+    try { TG.ftag.hideNextImg(); } catch (e) {}
+  };
   VN.ensureStopAuto = ensureStopAuto;
   VN.plain = function (h) { try { return $("<div>").html(h || "").text(); } catch (e) { return h || ""; } };
   VN.nowStr = function () {
@@ -289,7 +337,9 @@
   /* ---------- 選項：變暗、依實際高度等距排版 ---------- */
   VN.choiceBegin = function () {
     stopSkipAuto();                      // 出現選項即中止略過／自動，選完也不會恢復
+    VN.restoreLine();
     VN.commitAutosave();                 // 進入選項：寫入「繼續」用的自動存檔
+    VN.saveSf();                         // 順便把已讀記錄存起來
     var $fl = TG.layer.getFreeLayer();
     $("#vn_dim").remove();
     var L = window.vnLayout();
@@ -349,6 +399,11 @@
       var info = VN.speaker();
       VN.updatePlate(info);
       if (f.on_title == 1) return;
+      if (f.vn_chapter && VN.track) {
+        var was = VN.readMark(f.vn_chapter, VN.plain(pm.val));
+        var only = true; try { only = !!VN.cfg().skipRead; } catch (e2) {}
+        if (!was && only && TG.stat.is_skip) { try { TG.setSkip(false); } catch (e3) {} }   // 遇到未讀的句子：停止略過
+      }
       VN.applyFocus(info ? info.key : "");
       VN.pushLog(info, pm.val);
     } catch (err) { console.warn("vn text hook", err); }
@@ -368,6 +423,7 @@
       var line = ((e && e.target) || {}).val || "";
       TG.menu.snapSave("<span>" + title + "</span>", function () {
         TG.menu.snap.vn_ver = VN.SAVE_VERSION; TG.menu.snap.vn_fmt = VN.SAVE_FORMAT;
+        TG.menu.snap.vn_line = line;          // 自動存檔是在「這句開始」時拍的，讀取後要靠這個把最後一句補回對話框
         VN._lastAuto = { snap: TG.menu.snap, meta: VN.makeMeta(line) };
         if (VN._autoNow) { VN._autoNow = false; VN.commitAutosave(); }   // 章節第一句
         VN._autosaveBusy = false;

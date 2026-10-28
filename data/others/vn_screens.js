@@ -113,7 +113,18 @@
         } catch (e) { cb(out); }
       });
     }
-    return { put: put, get: get, all: all };
+    function del(store, key, cb) {
+      open(function (d) {
+        if (!d) { try { localStorage.removeItem(LS + store + "_" + key); } catch (e) {} if (cb) { cb(true); } return; }
+        try {
+          var tx = d.transaction(store, "readwrite");
+          tx.objectStore(store)["delete"](key);
+          tx.oncomplete = function () { if (cb) { cb(true); } };
+          tx.onerror = function () { if (cb) { cb(false); } };
+        } catch (e) { if (cb) { cb(false); } }
+      });
+    }
+    return { put: put, get: get, all: all, del: del };
   })();
   VN.db = DB;
 
@@ -154,7 +165,7 @@
     TG.stat.ch_speed = "";
     TG.config.chSpeed = TEXT_SPEED[c.text];
     TG.config.autoSpeed = AUTO_SPEED[c.auto];
-    TG.config.unReadTextSkip = c.skipRead ? "false" : "true";   // 開 = 只略過已讀
+    TG.config.unReadTextSkip = "true";   // Tyrano 自己的標籤式已讀不用了；「只略過已讀」改由 vn_ui.js 的逐句記錄處理（c.skipRead）
     TG.config.defaultBgmVolume = c.bgm;
     TG.config.defaultSeVolume = c.se;
     sf.vn_font_scale = FONT_SCALE[c.font];
@@ -255,6 +266,16 @@
               } else { doSave(it.id, it.label); }
             }
           });
+          if (it.meta) {                                  // 刪除鈕（右下角）
+            var $del = $('<span class="del">刪除</span>');
+            $del.on("pointerup click mousedown touchstart touchend", function (e) { e.stopPropagation(); });
+            $del.vntap(function () {
+              VN.confirm({ title: "刪除這個存檔？", sub: "刪除後無法復原。", ok: "刪除", cancel: "取消" }, function () {
+                DB.del("snap", it.id, function () { DB.del("meta", it.id, function () { VN.msg(S.$r, "已刪除 " + it.label); render(); }); });
+              });
+            });
+            $s.append($del);
+          }
           $g.append($s);
         });
       });
@@ -291,6 +312,7 @@
       return;
     }
     if (snap.vn_ver === VN.SAVE_VERSION) {
+      VN._restoreLine = snap.vn_line || null;
       VN.closePanels(); VN.home.hide(); $("#vn_end").remove(); $("#vn_log").remove();
       try { TG.cancelStrongStop(); } catch (e) {}
       TG.menu.loadGameData($.extend(true, {}, snap), { auto_next: autoNext });
@@ -318,6 +340,7 @@
       f.vn_resume_label = anchorOk ? "*" + of.vn_anchor : "";
       f.on_title = 0; f.page = ""; f.stage = []; f.chapter_title = "";
       VN.resetLog();
+      VN._restoreLine = null;
       VN._compat = true;                       // chapterBegin 讀到這個旗標：用存檔裡的章節起點數值，不覆寫儲思盆快照
       VN._compatChstart = of.vn_chstart || null;
       VN.jumpTo(c.file);
@@ -563,6 +586,7 @@
     f.on_title = 0;
     f.chapter_title = title;
     f.vn_chapter = id;
+    VN.stopSkipAuto();                                // 進入新章節：停止略過／自動
     VN.toolbar(true);
     VN.track = true;
     VN._autoNow = true;                               // 章節第一句寫入自動存檔
@@ -591,14 +615,13 @@
   // 章節腳本結尾呼叫（[end_chapter id=...]）。回傳 "main"（顯示章末頁並停住）
   VN.endChapter = function (id) {
     var f = TG.stat.f, sf = TG.variable.sf;
-    VN.track = false; VN.toolbar(false);
+    VN.stopSkipAuto(); VN.track = false; VN.toolbar(false);
     sf.vn_done = sf.vn_done || {}; sf.vn_ch = sf.vn_ch || {}; sf.vn_start = sf.vn_start || {};
     sf.vn_done[id] = 1; sf.vn_ch[id] = 1;
     var idx = VN.chapters.indexOf(VN.chapterById(id)), next = VN.chapters[idx + 1];
     // 不論下一章做好了沒有，都記下「通關時的數值」與解鎖；之後章節上線，儲思盆就能直接進入
     if (next) { sf.vn_ch[next.id] = 1; sf.vn_start[next.id] = VN.snapshotF(); sf.vn_head = next.n; }
-    VN.clearAutosave();
-    VN.saveSf();
+    VN.saveSf();                                      // 自動存檔保留：「繼續」回到最後一個選項
     VN.showEnd(idx);
     return "main";
   };
