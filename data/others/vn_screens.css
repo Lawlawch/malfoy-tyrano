@@ -235,19 +235,12 @@
 @media (max-aspect-ratio: 1/1) {
   .vn_scr .vn_sys_panel, #vn_log .vn_sys_panel { top: 96px; bottom: 3%; }
   #vn_home .frame { inset: 20px; }
-  #vn_home .col { left: 0; right: 0; text-align: center; }
-  #vn_home .ttl { text-align: center; }
-  #vn_home .t2 { text-align: center; margin-right: 0; }
-  #vn_home .orn { justify-content: center; }
+  #vn_home .col { left: 8%; }
   #vn_home .bg .moon { width: 14vmin; height: 14vmin; right: 12%; top: 7%; }
-  #vn_home .menu { align-items: center; }
-  #vn_home .item { text-align: center; padding-left: 0.5em; }
-  #vn_home .item + .item { background-position: top center; background-size: 150px 1px; }
-  #vn_home .item::before { left: 22px; } #vn_home .item::after { display: block; right: 22px; }
-  #vn_home .t1 { font-size: 78px; letter-spacing: 0.18em; padding-left: 0.18em; }
+  #vn_home .t1 { font-size: 78px; letter-spacing: 0.14em; }
   #vn_home .orn span { width: 130px; }
-  #vn_home .t2 { font-size: 36px; letter-spacing: 0.5em; padding-left: 0.5em; }
-  #vn_home .item { font-size: 36px; min-width: 380px; padding: 12px 0 12px 0.5em; }
+  #vn_home .t2 { font-size: 36px; letter-spacing: 0.5em; }
+  #vn_home .item { font-size: 36px; min-width: 380px; padding: 12px 0 12px 40px; }
   .vn_slots { grid-template-columns: 1fr; }
   .vn_slot .thumb { flex-basis: 170px; height: 96px; align-self: center; }
   .vn_slot .hd { font-size: 18px; }

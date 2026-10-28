@@ -317,7 +317,7 @@
     $("#vn_log").remove();
     var $o = $(
       '<div id="vn_log" class="vn_sys"><div class="vn_sys_panel">' +
-      '<div class="vn_sys_head"><span class="vn_sys_title">紀　錄</span><span class="vn_close_btn">×</span></div>' +
+      '<div class="vn_sys_head"><span class="vn_sys_title">紀錄</span><span class="vn_close_btn">×</span></div>' +
       '<div class="log_body"></div></div></div>'
     );
     var $body = $o.find(".log_body");

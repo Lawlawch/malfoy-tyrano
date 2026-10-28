@@ -2,7 +2,7 @@
 ; first.ks  最先執行的檔案（初始化）
 ;==============================================================
 
-[title name="Platinum Malfoy — Song of the Serpent and the Lion"]
+[title name="鉑金色的馬份｜蛇與獅之歌"]
 
 [stop_keyconfig]
 

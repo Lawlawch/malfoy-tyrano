@@ -243,24 +243,43 @@
       '<div class="ln">' + esc(meta.line) + '</div><div class="act"></div></div>';
   }
   // 手動存檔的縮圖：只拍背景、角色、對話框，不含工具列、選項、面板
+  // 縮圖：不截整個網頁，直接把「目前背景圖＋在場立繪」畫到畫布上（各瀏覽器行為一致，速度快）
   function captureThumb(cb) {
     try {
-      if (!window.html2canvas) { cb(null); return; }
-      var el = document.getElementById("tyrano_base"), r = el.getBoundingClientRect();
-      var sc = 384 / Math.max(r.width, r.height);
-      window.html2canvas(el, {
-        scale: sc, useCORS: true, backgroundColor: null, logging: false,
-        ignoreElements: function (n) {
-          return n.id === "vn_toolbar" || n.id === "vn_toast" || n.id === "vn_dim" || n.id === "vn_confirm" ||
-            (n.classList && (n.classList.contains("vn_scr") || n.classList.contains("glink_button")));
-        }
-      }).then(function (cv) { cb({ url: cv.toDataURL("image/jpeg", 0.6), w: cv.width, h: cv.height }); })
-        .catch(function () { cb(null); });
+      var el = document.getElementById("tyrano_base");
+      var W = el.offsetWidth, H = el.offsetHeight, rb = el.getBoundingClientRect(), k = rb.width / W || 1;
+      var sc = 384 / Math.max(W, H);
+      var cv = document.createElement("canvas"); cv.width = Math.round(W * sc); cv.height = Math.round(H * sc);
+      var ctx = cv.getContext("2d"); ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cv.width, cv.height);
+      var jobs = [];
+      var bgEl = document.querySelector("#tyrano_base .layer.base_fore");
+      var m = bgEl && /url\(["']?([^"')]+)["']?\)/.exec(getComputedStyle(bgEl).backgroundImage || "");
+      if (m) { jobs.push({ src: m[1], x: 0, y: 0, w: W, h: H, a: 1 }); }
+      $("#tyrano_base .tyrano_chara").each(function () {
+        var c = this, img = $(c).find("img.chara_img").get(0); if (!img || !img.getAttribute("src")) return;
+        var cs = getComputedStyle(c); if (cs.display === "none" || cs.visibility === "hidden") return;
+        var r = img.getBoundingClientRect(); if (!r.width) return;
+        jobs.push({ src: img.currentSrc || img.src, x: (r.left - rb.left) / k, y: (r.top - rb.top) / k, w: r.width / k, h: r.height / k, a: parseFloat(cs.opacity) });
+      });
+      var done = 0, imgs = [];
+      var finish = function () {
+        jobs.forEach(function (jb, i) { var im = imgs[i]; if (!im) return; ctx.globalAlpha = isNaN(jb.a) ? 1 : jb.a; ctx.drawImage(im, jb.x * sc, jb.y * sc, jb.w * sc, jb.h * sc); });
+        ctx.globalAlpha = 1;
+        try { cb({ url: cv.toDataURL("image/jpeg", 0.7), w: cv.width, h: cv.height }); } catch (e) { cb(null); }
+      };
+      if (!jobs.length) { finish(); return; }
+      jobs.forEach(function (jb, i) {
+        var im = new Image();
+        im.onload = function () { imgs[i] = im; if (++done === jobs.length) finish(); };
+        im.onerror = function () { if (++done === jobs.length) finish(); };
+        im.src = jb.src;
+      });
     } catch (e) { cb(null); }
   }
 
+
   function openSaveLoad(mode) {            // mode = "save" | "load"
-    var S = shell(mode === "save" ? "存　檔" : "讀　檔");
+    var S = shell(mode === "save" ? "存檔" : "讀檔");
     var tabNames = ["1", "2", "3"];
     var cur = 0;
 
@@ -384,7 +403,7 @@
      儲思盆（章節選擇）
      ============================================================= */
   function openChapters() {
-    var S = shell("儲　思　盆");
+    var S = shell("儲思盆");
     var sf = TG.variable.sf; sf.vn_ch = sf.vn_ch || {};
     sf.vn_ch.ch1_01 = 1;                    // 第一章一律可進入
     var yi = 0;
@@ -431,7 +450,7 @@
      圖鑑
      ============================================================= */
   function openGallery() {
-    var S = shell("圖　鑑");
+    var S = shell("圖鑑");
     var sf = TG.variable.sf; sf.vn_cg = sf.vn_cg || {}; sf.vn_end = sf.vn_end || {};
     var cat = 0, page = 0;
     var cats = [{ name: "一般 CG", list: VN.cgs.normal, flag: "vn_cg" }, { name: "結局 CG", list: VN.cgs.ending, flag: "vn_end" }];
@@ -498,7 +517,7 @@
      設定
      ============================================================= */
   function openConfig() {
-    var S = shell("設　定");
+    var S = shell("設定");
     var c = VN.cfg();
     var cat = 0, T = null;
     function persist() { VN.saveSf(); }
